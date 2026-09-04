@@ -25,53 +25,73 @@ function parseDate(v){
   const d=new Date(v);
   return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
 }
-function isoDate(d){ return d.toISOString().slice(0,10); }
-function fmtDate(d){ return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; }
-function num(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
-function pct(v){ return `${(v*100).toFixed(1)}%`; }
-function nfmt(v){ return Math.round(v).toLocaleString("id-ID"); }
-function typeNorm(v){ return String(v||"").trim().toUpperCase(); }
+
+function localInputDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function fmtDate(d){
+  return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+}
+
+function num(v){
+  const n=Number(v);
+  return Number.isFinite(n)?n:0;
+}
+
+function pct(v){
+  return `${(v*100).toFixed(1)}%`;
+}
+
+function nfmt(v){
+  return Math.round(v).toLocaleString("id-ID");
+}
+
+function typeNorm(v){
+  return String(v||"").trim().toUpperCase();
+}
 
 function seedFromDemo(){
-  state.daily = (window.DEMO_DATA?.daily||[]).map(r=>({
+  state.daily=(window.DEMO_DATA?.daily||[]).map(r=>({
     ...r,
-    tanggalObj: parseDate(r.tanggal),
+    tanggalObj:parseDate(r.tanggal),
     target_hari:num(r.target_hari),
     real_hari:num(r.realisasi_harian),
     target_kum:num(r.target_kumulatif),
     real_kum:num(r.realisasi_kumulatif),
-    cap_kum:num(r.capaian_kumulatif),
+    cap_kum:num(r.capaian_kumulatif)
   }));
-  state.types = (window.DEMO_DATA?.types||[]).map(r=>({
+  state.types=(window.DEMO_DATA?.types||[]).map(r=>({
     ...r,
-    tanggalObj: parseDate(r.tanggal),
+    tanggalObj:parseDate(r.tanggal),
     real:num(r.realisasi)
   }));
   state.mode="demo";
   updateStatus();
-  setDefaultDates();
+  setDefaultDates(true);
   render();
 }
 
 function updateStatus(){
-  $("statusBadge").textContent = state.mode==="live" ? "GOOGLE SHEETS" : "DEMO DATA";
+  $("statusBadge").innerHTML =
+    `<span class="status-dot"></span> ${state.mode==="live"?"GOOGLE SHEETS":"DEMO DATA"}`;
+  $("footerSource").textContent =
+    state.mode==="live" ? "Live • Google Sheets" : "Demo historis Jan–Jul 2026";
 }
 
-function setDefaultDates(){
+function setDefaultDates(forceStart=false){
   const all=state.daily.map(r=>r.tanggalObj).filter(Boolean).sort((a,b)=>a-b);
   if(!all.length) return;
-  if(!$("startDate").value) $("startDate").value=isoDate(all[0]);
-  $("endDate").value=isoDate(all[all.length-1]);
-}
 
-function groupBy(rows,key){
-  const m=new Map();
-  rows.forEach(r=>{
-    const k=r[key];
-    if(!m.has(k)) m.set(k,[]);
-    m.get(k).push(r);
-  });
-  return m;
+  // IMPORTANT: do not use toISOString(), because it can shift the UI date.
+  if(forceStart || !$("startDate").value){
+    $("startDate").value=localInputDate(all[0]);
+  }
+  $("endDate").value=localInputDate(all[all.length-1]);
+
+  const last=all[all.length-1];
+  $("lastUpdate").textContent =
+    `${state.mode==="live"?"Data live":"Data historis"} • s.d. ${fmtDate(last)}`;
 }
 
 function getEndSnapshot(rows,endDate){
@@ -80,54 +100,94 @@ function getEndSnapshot(rows,endDate){
     .sort((a,b)=>String(a.kode_up3).localeCompare(String(b.kode_up3)));
 }
 
-function getTypeRealUp3(up3,endDate){
-  const f=state.types.filter(r=>r.tanggalObj && r.tanggalObj.getTime()===endDate.getTime() && String(r.up3).toUpperCase()===String(up3).toUpperCase());
+function getSelectedTypeReal(up3,endDate){
   const selected=$("typeFilter").value;
+  const f=state.types.filter(r=>
+    r.tanggalObj &&
+    r.tanggalObj.getTime()===endDate.getTime() &&
+    String(r.up3).toUpperCase()===String(up3).toUpperCase()
+  );
   if(selected==="ALL") return f.reduce((s,r)=>s+num(r.real),0);
-  return f.filter(r=>typeNorm(r.jenis_ganti_meter)===selected).reduce((s,r)=>s+num(r.real),0);
+  return f.filter(r=>typeNorm(r.jenis_ganti_meter)===selected)
+          .reduce((s,r)=>s+num(r.real),0);
+}
+
+function sumSelectedTypePeriod(up3,start,end){
+  const selected=$("typeFilter").value;
+  const f=state.types.filter(r=>
+    r.tanggalObj &&
+    r.tanggalObj>=start &&
+    r.tanggalObj<=end &&
+    String(r.up3).toUpperCase()===String(up3).toUpperCase()
+  );
+  if(selected==="ALL") return f.reduce((s,r)=>s+num(r.real),0);
+  return f.filter(r=>typeNorm(r.jenis_ganti_meter)===selected)
+          .reduce((s,r)=>s+num(r.real),0);
 }
 
 function calculate(){
   const start=parseDate($("startDate").value);
   const end=parseDate($("endDate").value);
   const selected=$("typeFilter").value;
+
   if(!start||!end||start>end) return null;
 
-  const periodRows=state.daily.filter(r=>r.tanggalObj>=start && r.tanggalObj<=end);
+  const periodRows=state.daily.filter(r=>
+    r.tanggalObj &&
+    r.tanggalObj>=start &&
+    r.tanggalObj<=end
+  );
+
+  // Cumulative values always come from the end-date snapshot.
   const snapRows=getEndSnapshot(state.daily,end);
 
-  // Cumulative target and total real use the snapshot at end date.
-  const byUp3=[];
-  snapRows.forEach(s=>{
-    const selectedCum = getTypeRealUp3(s.up3,end);
-    const realCum = selected==="ALL" ? num(s.real_kum) : selectedCum;
-    const targetCum = num(s.target_kum); // target remains overall
-    const periodReal = selected==="ALL"
-      ? periodRows.filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase()).reduce((a,x)=>a+num(x.real_hari),0)
-      : state.types.filter(x=>x.tanggalObj>=start && x.tanggalObj<=end && String(x.up3).toUpperCase()===String(s.up3).toUpperCase() && typeNorm(x.jenis_ganti_meter)===selected).reduce((a,x)=>a+num(x.real),0);
+  const byUp3=snapRows.map(s=>{
+    const targetCum=num(s.target_kum);
 
-    const periodTarget=periodRows.filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase()).reduce((a,x)=>a+num(x.target_hari),0);
-    byUp3.push({
+    const realCum=selected==="ALL"
+      ? num(s.real_kum)
+      : sumSelectedTypeUp3Cumulative(s.up3,end);
+
+    const targetPeriod=periodRows
+      .filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase())
+      .reduce((a,x)=>a+num(x.target_hari),0);
+
+    const realPeriod=selected==="ALL"
+      ? periodRows
+          .filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase())
+          .reduce((a,x)=>a+num(x.real_hari),0)
+      : sumSelectedTypePeriod(s.up3,start,end);
+
+    return {
       ...s,
       targetCum,
       realCum,
-      capCum: targetCum?realCum/targetCum:0,
-      targetPeriod:periodTarget,
-      realPeriod:periodReal,
-      capPeriod:periodTarget?periodReal/periodTarget:0
-    });
+      capCum:targetCum?realCum/targetCum:0,
+      targetPeriod,
+      realPeriod,
+      capPeriod:targetPeriod?realPeriod/targetPeriod:0
+    };
   });
 
   const byUnit=new Map();
   byUp3.forEach(r=>{
     const k=String(r.unit_induk||"");
-    if(!byUnit.has(k)) byUnit.set(k,{unit_induk:k, targetCum:0, realCum:0, targetPeriod:0, realPeriod:0});
+    if(!byUnit.has(k)){
+      byUnit.set(k,{
+        unit_induk:k,
+        targetCum:0,
+        realCum:0,
+        targetPeriod:0,
+        realPeriod:0
+      });
+    }
     const x=byUnit.get(k);
     x.targetCum+=r.targetCum;
     x.realCum+=r.realCum;
     x.targetPeriod+=r.targetPeriod;
     x.realPeriod+=r.realPeriod;
   });
+
   [...byUnit.values()].forEach(x=>{
     x.capCum=x.targetCum?x.realCum/x.targetCum:0;
     x.capPeriod=x.targetPeriod?x.realPeriod/x.targetPeriod:0;
@@ -146,6 +206,29 @@ function calculate(){
   };
 }
 
+/*
+ * SUMMER:
+ * For a selected type, the cumulative type realization is the
+ * sum of type snapshots from the beginning of the available
+ * data to the selected end date.
+ *
+ * This demo data has 3 type rows per UP3/date.
+ */
+function sumSelectedTypeUp3Cumulative(up3,end){
+  const selected=$("typeFilter").value;
+
+  const f=state.types.filter(r=>
+    r.tanggalObj &&
+    r.tanggalObj<=end &&
+    String(r.up3).toUpperCase()===String(up3).toUpperCase()
+  );
+
+  if(selected==="ALL") return f.reduce((s,r)=>s+num(r.real),0);
+
+  return f.filter(r=>typeNorm(r.jenis_ganti_meter)===selected)
+          .reduce((s,r)=>s+num(r.real),0);
+}
+
 function capClass(v){
   if(v>=1) return "good";
   if(v>=0.9) return "warn";
@@ -154,13 +237,23 @@ function capClass(v){
 
 function render(){
   const data=calculate();
-  if(!data) return;
+  if(!data){
+    $("dataNote").textContent="Periksa Periode Awal dan Periode Akhir.";
+    return;
+  }
+
+  const totalCap=data.totals.targetCum
+    ? data.totals.realCum/data.totals.targetCum
+    : 0;
 
   $("kpiTargetCum").textContent=nfmt(data.totals.targetCum);
   $("kpiRealCum").textContent=nfmt(data.totals.realCum);
-  $("kpiCapCum").textContent=pct(data.totals.targetCum?data.totals.realCum/data.totals.targetCum:0);
+  $("kpiCapCum").textContent=pct(totalCap);
   $("kpiRealDaily").textContent=nfmt(data.totals.realPeriod);
   $("kpiUp3").textContent=nfmt(data.byUp3.length);
+
+  $("up3Count").textContent=`${data.byUp3.length} UP3`;
+  $("chartCount").textContent=`${data.byUp3.length} UP3`;
 
   const unitBody=$("unitTable").querySelector("tbody");
   unitBody.innerHTML=data.byUnit.map(r=>`
@@ -175,7 +268,11 @@ function render(){
     </tr>`).join("");
 
   const up3Body=$("up3Table").querySelector("tbody");
-  const sorted=[...data.byUp3].sort((a,b)=>b.capCum-a.capCum || a.up3.localeCompare(b.up3));
+  const sorted=[...data.byUp3].sort((a,b)=>
+    b.capCum-a.capCum ||
+    a.up3.localeCompare(b.up3)
+  );
+
   up3Body.innerHTML=sorted.map(r=>`
     <tr>
       <td class="ui-name">${escapeHtml(r.unit_induk)}</td>
@@ -188,14 +285,18 @@ function render(){
       <td class="badge ${capClass(r.capPeriod)}">${pct(r.capPeriod)}</td>
     </tr>`).join("");
 
-  renderChart(sorted.slice(0,40));
+  renderChart(sorted);
+
   $("dataNote").textContent =
-    `${state.mode==="live"?"Sumber live Google Sheets":"Mode demo menggunakan Summary Historis Jan–Jul 2026"} • Periode tampilan: ${fmtDate(data.start)} s.d. ${fmtDate(data.end)} • Filter jenis: ${data.selected==="ALL"?"TOTAL":data.selected}`;
+    `${state.mode==="live"?"Sumber live Google Sheets":"Mode demo menggunakan Summary Historis Jan–Jul 2026"} • `+
+    `${fmtDate(data.start)} s.d. ${fmtDate(data.end)} • `+
+    `Jenis: ${data.selected==="ALL"?"TOTAL":data.selected}`;
 }
 
 function renderChart(rows){
   const ctx=$("rankingChart");
   if(state.chart) state.chart.destroy();
+
   state.chart=new Chart(ctx,{
     type:"bar",
     data:{
@@ -203,6 +304,14 @@ function renderChart(rows){
       datasets:[{
         label:"Capaian Kumulatif",
         data:rows.map(r=>Number((r.capCum*100).toFixed(1))),
+        backgroundColor:rows.map(r=>{
+          if(r.capCum>=1) return "rgba(22,148,94,.82)";
+          if(r.capCum>=.9) return "rgba(180,123,18,.80)";
+          return "rgba(212,78,78,.80)";
+        }),
+        borderRadius:6,
+        barThickness:14,
+        maxBarThickness:15,
         borderWidth:0
       }]
     },
@@ -210,25 +319,46 @@ function renderChart(rows){
       indexAxis:"y",
       responsive:true,
       maintainAspectRatio:false,
+      animation:{duration:500},
+      layout:{padding:{left:4,right:22,top:8,bottom:8}},
       plugins:{
         legend:{display:false},
-        tooltip:{callbacks:{label:c=>`${c.raw.toFixed(1)}%`}}
+        tooltip:{
+          callbacks:{
+            label:c=>`${c.raw.toFixed(1)}%`
+          }
+        }
       },
       scales:{
-        x:{beginAtZero:true, ticks:{callback:v=>v+"%"}, grid:{color:"#eef1f4"}},
-        y:{grid:{display:false}}
+        x:{
+          beginAtZero:true,
+          suggestedMax:Math.max(120,Math.ceil((Math.max(...rows.map(r=>r.capCum*100))/10))*10+10),
+          grid:{color:"#e9eef3"},
+          ticks:{
+            color:"#6b7a89",
+            font:{size:10},
+            callback:v=>v+"%"
+          }
+        },
+        y:{
+          grid:{display:false},
+          ticks:{
+            autoSkip:false,
+            color:"#53616e",
+            padding:7,
+            font:{size:10,weight:"600"}
+          }
+        }
       }
     }
   });
 }
 
-function escapeHtml(v){
-  return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-}
+/* ---------- CSV / Live Google Sheets ---------- */
 
-/* Google Visualization CSV loader. */
-async function loadSheetCsv(sheetId, sheetName){
-  const url=`https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+async function loadSheetCsv(sheetId,sheetName){
+  const url=
+    `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
   const res=await fetch(url,{cache:"no-store"});
   if(!res.ok) throw new Error(`Gagal membaca ${sheetName}: HTTP ${res.status}`);
   const text=await res.text();
@@ -237,12 +367,12 @@ async function loadSheetCsv(sheetId, sheetName){
 
 function parseCsv(text){
   const rows=[];
-  let row=[], cell="", quote=false;
+  let row=[],cell="",quote=false;
   for(let i=0;i<text.length;i++){
-    const ch=text[i], nx=text[i+1];
+    const ch=text[i],nx=text[i+1];
     if(quote){
       if(ch==='"' && nx==='"'){cell+='"';i++;}
-      else if(ch==='"'){quote=false;}
+      else if(ch==='"') quote=false;
       else cell+=ch;
     }else{
       if(ch==='"') quote=true;
@@ -255,7 +385,9 @@ function parseCsv(text){
   if(!rows.length) return [];
   const head=rows.shift();
   return rows.filter(r=>r.some(x=>x!=="")).map(r=>{
-    const o={}; head.forEach((h,i)=>o[h]=r[i]??""); return o;
+    const o={};
+    head.forEach((h,i)=>o[h]=r[i]??"");
+    return o;
   });
 }
 
@@ -270,6 +402,7 @@ function normalizeLiveDaily(rows){
     cap_kum:num(r.capaian_kumulatif)
   })).filter(r=>r.tanggalObj);
 }
+
 function normalizeLiveTypes(rows){
   return rows.map(r=>({
     ...r,
@@ -282,39 +415,57 @@ async function connectLive(){
   const id=$("sheetIdInput").value.trim();
   const sheetName=$("sheetNameInput").value.trim()||"02_SUMMARY_HARIAN";
   const typeSheetName=$("typeSheetNameInput").value.trim()||"03_SUMMARY_JENIS";
-  if(!id){$("liveHelp").textContent="Spreadsheet ID belum diisi.";return;}
+
+  if(!id){
+    $("liveHelp").textContent="Spreadsheet ID belum diisi.";
+    return;
+  }
+
   $("liveHelp").textContent="Membaca Google Sheets...";
+
   try{
     const [d,t]=await Promise.all([
       loadSheetCsv(id,sheetName),
       loadSheetCsv(id,typeSheetName)
     ]);
+
     state.daily=normalizeLiveDaily(d);
     state.types=normalizeLiveTypes(t);
-    if(!state.daily.length) throw new Error("Summary Harian kosong atau tanggal tidak terbaca.");
+
+    if(!state.daily.length){
+      throw new Error("Summary Harian kosong atau tanggal tidak terbaca.");
+    }
+
     state.mode="live";
     state.sheetId=id;
     state.sheetName=sheetName;
     state.typeSheetName=typeSheetName;
+
     localStorage.setItem("gm_sheet_id",id);
     localStorage.setItem("gm_sheet_name",sheetName);
     localStorage.setItem("gm_type_sheet_name",typeSheetName);
+
     $("liveModal").classList.add("hidden");
+
     updateStatus();
-    const all=state.daily.map(r=>r.tanggalObj).sort((a,b)=>a-b);
-    $("startDate").value=isoDate(all[0]);
-    $("endDate").value=isoDate(all[all.length-1]);
+    setDefaultDates(true);
     render();
+
   }catch(err){
     console.error(err);
-    $("liveHelp").textContent="Gagal terhubung: "+err.message+". Pastikan sheet dapat dibaca dari web.";
+    $("liveHelp").textContent=
+      "Gagal terhubung: "+err.message+
+      ". Pastikan sheet dapat dibaca dari web.";
   }
 }
+
+/* ---------- Events ---------- */
 
 $("refreshBtn").addEventListener("click",render);
 $("startDate").addEventListener("change",render);
 $("endDate").addEventListener("change",render);
 $("typeFilter").addEventListener("change",render);
+
 $("liveBtn").addEventListener("click",()=>{
   $("sheetIdInput").value=state.sheetId;
   $("sheetNameInput").value=state.sheetName;
@@ -322,11 +473,29 @@ $("liveBtn").addEventListener("click",()=>{
   $("liveHelp").textContent="";
   $("liveModal").classList.remove("hidden");
 });
-$("closeModal").addEventListener("click",()=>$("liveModal").classList.add("hidden"));
+
+$("closeModal").addEventListener("click",()=>{
+  $("liveModal").classList.add("hidden");
+});
+
 $("demoBtn").addEventListener("click",()=>{
   $("liveModal").classList.add("hidden");
   seedFromDemo();
 });
+
 $("connectBtn").addEventListener("click",connectLive);
+
+function escapeHtml(v){
+  return String(v??"").replace(
+    /[&<>"']/g,
+    m=>({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#039;"
+    }[m])
+  );
+}
 
 seedFromDemo();

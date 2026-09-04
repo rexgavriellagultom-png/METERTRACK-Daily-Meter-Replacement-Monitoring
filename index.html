@@ -3,32 +3,45 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard Ganti Meter Harian</title>
-  <meta name="description" content="Monitoring capaian ganti meter per Unit Induk dan UP3">
+  <title>Ganti Meter • Performance Dashboard</title>
+  <meta name="description" content="Monitoring capaian kinerja ganti meter per Unit Induk dan UP3">
   <link rel="stylesheet" href="styles.css">
   <script src="demo-data.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div>
+  <div class="shell">
+    <header class="hero">
+      <div class="hero-copy">
         <div class="eyebrow">MONITORING GANTI METER</div>
-        <h1>Dashboard Capaian Kinerja</h1>
-        <div class="subtitle">Per UP3 • harian & kumulatif</div>
+        <h1>Capaian Kinerja <span>2026</span></h1>
+        <p>Monitoring realisasi harian dan kumulatif per Unit Induk & UP3</p>
       </div>
-      <div class="status" id="statusBadge">DEMO DATA</div>
+      <div class="hero-meta">
+        <div class="status" id="statusBadge"><span class="status-dot"></span> DEMO DATA</div>
+        <div class="last-update" id="lastUpdate">Data historis Jan–Jul 2026</div>
+      </div>
     </header>
 
-    <section class="control-card">
-      <div class="control-grid">
-        <label>Periode Awal
+    <section class="filter-card">
+      <div class="filter-title">
+        <div class="filter-icon">⌕</div>
+        <div>
+          <strong>Filter Kinerja</strong>
+          <span>Pilih periode dan jenis penggantian</span>
+        </div>
+      </div>
+      <div class="filter-controls">
+        <label>
+          <span>Periode Awal</span>
           <input type="date" id="startDate">
         </label>
-        <label>Periode Akhir
+        <label>
+          <span>Periode Akhir</span>
           <input type="date" id="endDate">
         </label>
-        <label>Jenis Ganti Meter
+        <label>
+          <span>Jenis Ganti Meter</span>
           <select id="typeFilter">
             <option value="ALL">TOTAL</option>
             <option value="METER TUA">METER TUA</option>
@@ -36,43 +49,66 @@
             <option value="METER GARANSI">METER GARANSI</option>
           </select>
         </label>
-        <div class="actions">
+        <div class="filter-actions">
           <button id="refreshBtn" class="btn btn-primary">Refresh</button>
-          <button id="liveBtn" class="btn btn-secondary">Hubungkan Google Sheets</button>
+          <button id="liveBtn" class="btn btn-ghost">Google Sheets</button>
         </div>
       </div>
       <div class="data-note" id="dataNote"></div>
     </section>
 
     <section class="kpi-grid">
-      <div class="kpi">
-        <div class="kpi-label">Target Kumulatif</div>
-        <div class="kpi-value" id="kpiTargetCum">0</div>
+      <article class="kpi-card accent-blue">
+        <div class="kpi-icon">◎</div>
+        <div>
+          <div class="kpi-label">Target Kumulatif</div>
+          <div class="kpi-value" id="kpiTargetCum">0</div>
+        </div>
+      </article>
+      <article class="kpi-card accent-teal">
+        <div class="kpi-icon">↗</div>
+        <div>
+          <div class="kpi-label">Realisasi Kumulatif</div>
+          <div class="kpi-value" id="kpiRealCum">0</div>
+        </div>
+      </article>
+      <article class="kpi-card accent-green">
+        <div class="kpi-icon">%</div>
+        <div>
+          <div class="kpi-label">Capaian Kumulatif</div>
+          <div class="kpi-value" id="kpiCapCum">0%</div>
+        </div>
+      </article>
+      <article class="kpi-card accent-amber">
+        <div class="kpi-icon">▣</div>
+        <div>
+          <div class="kpi-label">Realisasi Periode</div>
+          <div class="kpi-value" id="kpiRealDaily">0</div>
+        </div>
+      </article>
+      <article class="kpi-card accent-purple">
+        <div class="kpi-icon">41</div>
+        <div>
+          <div class="kpi-label">UP3 Dipantau</div>
+          <div class="kpi-value" id="kpiUp3">0</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="section-header">
+      <div>
+        <div class="eyebrow">EXECUTIVE VIEW</div>
+        <h2>Perbandingan Kinerja</h2>
       </div>
-      <div class="kpi">
-        <div class="kpi-label">Realisasi Kumulatif</div>
-        <div class="kpi-value" id="kpiRealCum">0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Capaian Kumulatif</div>
-        <div class="kpi-value" id="kpiCapCum">0%</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Realisasi Periode</div>
-        <div class="kpi-value" id="kpiRealDaily">0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">UP3 Dipantau</div>
-        <div class="kpi-value" id="kpiUp3">0</div>
-      </div>
+      <div class="legend-note"><span class="legend-dot"></span> hijau ≥ 100% • amber 90–99,9% • merah &lt; 90%</div>
     </section>
 
     <section class="grid-2">
       <div class="panel">
         <div class="panel-head">
           <div>
-            <h2>Unit Induk</h2>
-            <span>Perbandingan target & realisasi</span>
+            <h3>Unit Induk</h3>
+            <span>Target dan realisasi pada akhir periode terpilih</span>
           </div>
         </div>
         <div class="table-wrap">
@@ -82,10 +118,10 @@
                 <th>UNIT INDUK</th>
                 <th>TARGET KUM.</th>
                 <th>REAL KUM.</th>
-                <th>%</th>
+                <th>CAPAIAN</th>
                 <th>TARGET PERIODE</th>
                 <th>REAL PERIODE</th>
-                <th>%</th>
+                <th>CAPAIAN</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -96,9 +132,10 @@
       <div class="panel">
         <div class="panel-head">
           <div>
-            <h2>UP3</h2>
-            <span>Perbandingan target & realisasi</span>
+            <h3>UP3</h3>
+            <span>Detail performa per UP3</span>
           </div>
+          <div class="mini-count" id="up3Count">41 UP3</div>
         </div>
         <div class="table-wrap tall">
           <table id="up3Table">
@@ -108,10 +145,10 @@
                 <th>UP3</th>
                 <th>TARGET KUM.</th>
                 <th>REAL KUM.</th>
-                <th>%</th>
+                <th>CAPAIAN</th>
                 <th>TARGET PERIODE</th>
                 <th>REAL PERIODE</th>
-                <th>%</th>
+                <th>CAPAIAN</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -123,47 +160,60 @@
     <section class="panel chart-panel">
       <div class="panel-head">
         <div>
-          <h2>Ranking Capaian Kumulatif per UP3</h2>
-          <span>Urut tertinggi ke terendah • filter jenis mengikuti pilihan di atas</span>
+          <div class="eyebrow">RANKING</div>
+          <h3>Ranking Capaian Kumulatif per UP3</h3>
+          <span>Seluruh UP3 • urut tertinggi ke terendah</span>
         </div>
+        <div class="mini-count" id="chartCount">41 UP3</div>
       </div>
-      <div class="chart-box">
-        <canvas id="rankingChart"></canvas>
+      <div class="chart-scroll">
+        <div class="chart-box">
+          <canvas id="rankingChart"></canvas>
+        </div>
       </div>
     </section>
 
-    <div class="modal hidden" id="liveModal">
-      <div class="modal-card">
-        <div class="modal-head">
-          <div>
-            <div class="eyebrow">SUMBER DATA</div>
-            <h2>Hubungkan Google Sheets</h2>
-          </div>
-          <button class="icon-btn" id="closeModal">×</button>
+    <footer class="footer">
+      <span>Dashboard Ganti Meter • Google Sheets + GitHub Pages</span>
+      <span id="footerSource">Demo historis Jan–Jul 2026</span>
+    </footer>
+  </div>
+
+  <div class="modal hidden" id="liveModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow">SUMBER DATA</div>
+          <h2>Hubungkan Google Sheets</h2>
         </div>
-        <p class="modal-text">
-          Masukkan <b>Spreadsheet ID</b> dari URL Google Sheets.
-          Sheet harus dapat dibaca oleh browser (misalnya dipublikasikan / akses sesuai kebutuhan).
-        </p>
-        <label>Spreadsheet ID
-          <input id="sheetIdInput" placeholder="1AbC...">
-        </label>
-        <div class="sheet-row">
-          <label>Nama Sheet Summary
-            <input id="sheetNameInput" value="02_SUMMARY_HARIAN">
-          </label>
-          <label>Nama Sheet Jenis
-            <input id="typeSheetNameInput" value="03_SUMMARY_JENIS">
-          </label>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" id="demoBtn">Kembali ke Demo</button>
-          <button class="btn btn-primary" id="connectBtn">Hubungkan</button>
-        </div>
-        <div class="small" id="liveHelp"></div>
+        <button class="icon-btn" id="closeModal">×</button>
       </div>
+      <p class="modal-text">
+        Masukkan <b>Spreadsheet ID</b>. Dashboard akan membaca
+        <code>02_SUMMARY_HARIAN</code> dan <code>03_SUMMARY_JENIS</code>.
+      </p>
+      <label>
+        <span>Spreadsheet ID</span>
+        <input id="sheetIdInput" placeholder="1AbC...">
+      </label>
+      <div class="sheet-row">
+        <label>
+          <span>Sheet Summary</span>
+          <input id="sheetNameInput" value="02_SUMMARY_HARIAN">
+        </label>
+        <label>
+          <span>Sheet Jenis</span>
+          <input id="typeSheetNameInput" value="03_SUMMARY_JENIS">
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="demoBtn">Gunakan Demo</button>
+        <button class="btn btn-primary" id="connectBtn">Hubungkan</button>
+      </div>
+      <div class="small" id="liveHelp"></div>
     </div>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>
