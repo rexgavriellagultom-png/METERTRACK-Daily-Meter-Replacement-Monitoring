@@ -1,219 +1,332 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ganti Meter • Performance Dashboard</title>
-  <meta name="description" content="Monitoring capaian kinerja ganti meter per Unit Induk dan UP3">
-  <link rel="stylesheet" href="styles.css">
-  <script src="demo-data.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ganti Meter • Monitoring Kinerja 2026</title>
+<style>
+:root{
+  --bg:#f4f7fa; --card:#ffffff; --ink:#132333; --muted:#6f7e8b;
+  --line:#e3e9ee; --navy:#0b4f71; --navy2:#083b56;
+  --green:#168a59; --amber:#b57b12; --red:#d64b4b;
+  --blue:#3a88c9; --shadow:0 10px 28px rgba(26,43,58,.07);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}
+body{min-height:100vh}
+.page{max-width:1820px;margin:auto;padding:22px 24px 34px}
+.header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:18px}
+.kicker{font-size:10px;letter-spacing:.22em;font-weight:900;color:var(--navy)}
+.title{font-size:32px;line-height:1.05;font-weight:850;letter-spacing:-.03em;margin:6px 0 5px}
+.title span{font-weight:500;color:var(--navy)}
+.sub{font-size:13px;color:var(--muted)}
+.status-wrap{text-align:right}
+.status{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:10px;font-weight:900;color:var(--navy)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.updated{font-size:10px;color:var(--muted);margin-top:7px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.filters{padding:16px 18px;margin-bottom:15px}
+.filter-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.filter-badge{width:34px;height:34px;border-radius:10px;background:#edf5f9;color:var(--navy);display:grid;place-items:center;font-weight:900;font-size:16px}
+.filter-head b{display:block;font-size:13px}
+.filter-head small{color:var(--muted);font-size:10px}
+.controls{display:grid;grid-template-columns:1fr 1fr 1.25fr auto;gap:10px;align-items:end}
+label{display:block;color:#51616f;font-size:10px;font-weight:850}
+label span{display:block;margin:0 0 6px}
+input,select{width:100%;height:40px;padding:0 11px;border:1px solid #ced9e2;border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:13px;outline:none}
+input:focus,select:focus{border-color:#85b1cb;box-shadow:0 0 0 3px rgba(58,136,201,.1)}
+.actions{display:flex;gap:8px}
+button{height:40px;border-radius:10px;padding:0 14px;border:1px solid transparent;font:inherit;font-size:12px;font-weight:850;cursor:pointer}
+.primary{background:var(--navy);color:#fff}
+.ghost{background:#fff;color:var(--navy);border-color:#ced9e2}
+.note{font-size:10px;color:var(--muted);margin-top:9px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:22px}
+.kpi{padding:14px 15px;display:flex;align-items:center;gap:11px;position:relative;overflow:hidden}
+.kpi:after{content:"";position:absolute;width:72px;height:72px;right:-28px;top:-28px;border-radius:50%;background:#f7fafc}
+.kicon{width:37px;height:37px;border-radius:11px;display:grid;place-items:center;font-size:13px;font-weight:900;background:#eff5f8}
+.k1 .kicon{color:var(--blue)} .k2 .kicon{color:#198f8b}
+.k3 .kicon{color:var(--green)} .k4 .kicon{color:var(--amber)} .k5 .kicon{color:#7658c5}
+.klabel{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:900}
+.kvalue{font-size:25px;font-weight:900;line-height:1.1;margin-top:4px}
+.section{display:flex;justify-content:space-between;align-items:flex-end;margin:6px 2px 10px}
+.section h2{font-size:18px;margin:5px 0 0}
+.legend{font-size:10px;color:var(--muted)}
+.legend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 4px 0 9px}
+.i-good{background:var(--green)} .i-warn{background:var(--amber)} .i-bad{background:var(--red)}
+.grid{display:grid;grid-template-columns:.9fr 1.45fr;gap:14px;margin-bottom:14px}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 15px;border-bottom:1px solid var(--line)}
+.panel-head h3{margin:5px 0 3px;font-size:15px}
+.panel-head p{margin:0;font-size:10px;color:var(--muted)}
+.count{padding:5px 8px;border-radius:99px;background:#eef5f9;color:var(--navy);font-size:9px;font-weight:900}
+.tablebox{max-height:470px;overflow:auto}
+.tablebox.large{max-height:560px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:10px}
+th,td{padding:9px 8px;border-bottom:1px solid #edf1f4;white-space:nowrap;text-align:right}
+th:first-child,td:first-child,td.up3{text-align:left}
+th{position:sticky;top:0;background:#f8fafc;color:#73808c;font-size:8.5px;letter-spacing:.04em;z-index:2}
+td.name{font-weight:750;text-align:left}
+td.up3{font-weight:750}
+tbody tr:hover{background:#f8fbfd}
+.good{color:var(--green);font-weight:900}.warn{color:var(--amber);font-weight:900}.bad{color:var(--red);font-weight:900}
+.rank-card{overflow:hidden}
+.rank-list{padding:14px 18px 18px}
+.rank-row{display:grid;grid-template-columns:205px 1fr 58px;align-items:center;gap:10px;margin:7px 0}
+.rank-name{font-size:10px;color:#50606f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-track{height:13px;background:#eef2f5;border-radius:999px;overflow:hidden;position:relative}
+.rank-fill{height:100%;border-radius:999px}
+.rank-value{font-size:10px;font-weight:900;text-align:right}
+.bar-good{background:linear-gradient(90deg,#49ad82,#168a59)}
+.bar-warn{background:linear-gradient(90deg,#e5b85e,#b57b12)}
+.bar-bad{background:linear-gradient(90deg,#e88787,#d64b4b)}
+.rank-footer{padding:0 18px 15px;color:var(--muted);font-size:9px}
+.modal{position:fixed;inset:0;background:rgba(17,31,43,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:20}
+.hidden{display:none}
+.modal-card{width:min(700px,100%);background:#fff;border-radius:16px;padding:19px;box-shadow:0 20px 70px rgba(0,0,0,.25)}
+.modal-head{display:flex;justify-content:space-between}
+.modal-head h2{margin:6px 0 0;font-size:20px}
+.close{border:0;background:transparent;font-size:28px;color:#7b8994;height:auto;padding:0}
+.modal p{font-size:12px;color:var(--muted);line-height:1.55}
+.sheet-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.help{font-size:10px;color:var(--muted);margin-top:9px}
+.footer{display:flex;justify-content:space-between;margin-top:12px;font-size:9px;color:#7f8c98}
+@media(max-width:1150px){.controls{grid-template-columns:1fr 1fr}.actions{grid-column:1/-1}.kpis{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}}
+@media(max-width:700px){.page{padding:14px}.header{flex-direction:column;align-items:flex-start}.status-wrap{text-align:left}.controls{grid-template-columns:1fr}.actions{grid-column:auto}.kpis{grid-template-columns:1fr 1fr}.rank-row{grid-template-columns:125px 1fr 50px}.tablebox{max-height:430px}}
+</style>
+<script src="demo-data.js"></script>
 </head>
 <body>
-  <div class="shell">
-    <header class="hero">
-      <div class="hero-copy">
-        <div class="eyebrow">MONITORING GANTI METER</div>
-        <h1>Capaian Kinerja <span>2026</span></h1>
-        <p>Monitoring realisasi harian dan kumulatif per Unit Induk & UP3</p>
-      </div>
-      <div class="hero-meta">
-        <div class="status" id="statusBadge"><span class="status-dot"></span> DEMO DATA</div>
-        <div class="last-update" id="lastUpdate">Data historis Jan–Jul 2026</div>
-      </div>
-    </header>
-
-    <section class="filter-card">
-      <div class="filter-title">
-        <div class="filter-icon">⌕</div>
-        <div>
-          <strong>Filter Kinerja</strong>
-          <span>Pilih periode dan jenis penggantian</span>
-        </div>
-      </div>
-      <div class="filter-controls">
-        <label>
-          <span>Periode Awal</span>
-          <input type="date" id="startDate">
-        </label>
-        <label>
-          <span>Periode Akhir</span>
-          <input type="date" id="endDate">
-        </label>
-        <label>
-          <span>Jenis Ganti Meter</span>
-          <select id="typeFilter">
-            <option value="ALL">TOTAL</option>
-            <option value="METER TUA">METER TUA</option>
-            <option value="METER RUSAK">METER RUSAK</option>
-            <option value="METER GARANSI">METER GARANSI</option>
-          </select>
-        </label>
-        <div class="filter-actions">
-          <button id="refreshBtn" class="btn btn-primary">Refresh</button>
-          <button id="liveBtn" class="btn btn-ghost">Google Sheets</button>
-        </div>
-      </div>
-      <div class="data-note" id="dataNote"></div>
-    </section>
-
-    <section class="kpi-grid">
-      <article class="kpi-card accent-blue">
-        <div class="kpi-icon">◎</div>
-        <div>
-          <div class="kpi-label">Target Kumulatif</div>
-          <div class="kpi-value" id="kpiTargetCum">0</div>
-        </div>
-      </article>
-      <article class="kpi-card accent-teal">
-        <div class="kpi-icon">↗</div>
-        <div>
-          <div class="kpi-label">Realisasi Kumulatif</div>
-          <div class="kpi-value" id="kpiRealCum">0</div>
-        </div>
-      </article>
-      <article class="kpi-card accent-green">
-        <div class="kpi-icon">%</div>
-        <div>
-          <div class="kpi-label">Capaian Kumulatif</div>
-          <div class="kpi-value" id="kpiCapCum">0%</div>
-        </div>
-      </article>
-      <article class="kpi-card accent-amber">
-        <div class="kpi-icon">▣</div>
-        <div>
-          <div class="kpi-label">Realisasi Periode</div>
-          <div class="kpi-value" id="kpiRealDaily">0</div>
-        </div>
-      </article>
-      <article class="kpi-card accent-purple">
-        <div class="kpi-icon">41</div>
-        <div>
-          <div class="kpi-label">UP3 Dipantau</div>
-          <div class="kpi-value" id="kpiUp3">0</div>
-        </div>
-      </article>
-    </section>
-
-    <section class="section-header">
-      <div>
-        <div class="eyebrow">EXECUTIVE VIEW</div>
-        <h2>Perbandingan Kinerja</h2>
-      </div>
-      <div class="legend-note"><span class="legend-dot"></span> hijau ≥ 100% • amber 90–99,9% • merah &lt; 90%</div>
-    </section>
-
-    <section class="grid-2">
-      <div class="panel">
-        <div class="panel-head">
-          <div>
-            <h3>Unit Induk</h3>
-            <span>Target dan realisasi pada akhir periode terpilih</span>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table id="unitTable">
-            <thead>
-              <tr>
-                <th>UNIT INDUK</th>
-                <th>TARGET KUM.</th>
-                <th>REAL KUM.</th>
-                <th>CAPAIAN</th>
-                <th>TARGET PERIODE</th>
-                <th>REAL PERIODE</th>
-                <th>CAPAIAN</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <div>
-            <h3>UP3</h3>
-            <span>Detail performa per UP3</span>
-          </div>
-          <div class="mini-count" id="up3Count">41 UP3</div>
-        </div>
-        <div class="table-wrap tall">
-          <table id="up3Table">
-            <thead>
-              <tr>
-                <th>UNIT INDUK</th>
-                <th>UP3</th>
-                <th>TARGET KUM.</th>
-                <th>REAL KUM.</th>
-                <th>CAPAIAN</th>
-                <th>TARGET PERIODE</th>
-                <th>REAL PERIODE</th>
-                <th>CAPAIAN</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel chart-panel">
-      <div class="panel-head">
-        <div>
-          <div class="eyebrow">RANKING</div>
-          <h3>Ranking Capaian Kumulatif per UP3</h3>
-          <span>Seluruh UP3 • urut tertinggi ke terendah</span>
-        </div>
-        <div class="mini-count" id="chartCount">41 UP3</div>
-      </div>
-      <div class="chart-scroll">
-        <div class="chart-box">
-          <canvas id="rankingChart"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <span>Dashboard Ganti Meter • Google Sheets + GitHub Pages</span>
-      <span id="footerSource">Demo historis Jan–Jul 2026</span>
-    </footer>
-  </div>
-
-  <div class="modal hidden" id="liveModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>
-          <div class="eyebrow">SUMBER DATA</div>
-          <h2>Hubungkan Google Sheets</h2>
-        </div>
-        <button class="icon-btn" id="closeModal">×</button>
-      </div>
-      <p class="modal-text">
-        Masukkan <b>Spreadsheet ID</b>. Dashboard akan membaca
-        <code>02_SUMMARY_HARIAN</code> dan <code>03_SUMMARY_JENIS</code>.
-      </p>
-      <label>
-        <span>Spreadsheet ID</span>
-        <input id="sheetIdInput" placeholder="1AbC...">
-      </label>
-      <div class="sheet-row">
-        <label>
-          <span>Sheet Summary</span>
-          <input id="sheetNameInput" value="02_SUMMARY_HARIAN">
-        </label>
-        <label>
-          <span>Sheet Jenis</span>
-          <input id="typeSheetNameInput" value="03_SUMMARY_JENIS">
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" id="demoBtn">Gunakan Demo</button>
-        <button class="btn btn-primary" id="connectBtn">Hubungkan</button>
-      </div>
-      <div class="small" id="liveHelp"></div>
+<div class="page">
+  <header class="header">
+    <div>
+      <div class="kicker">MONITORING GANTI METER</div>
+      <div class="title">Capaian Kinerja <span>2026</span></div>
+      <div class="sub">Monitoring realisasi harian & kumulatif per Unit Induk dan UP3</div>
     </div>
+    <div class="status-wrap">
+      <div class="status"><span class="dot"></span><span id="modeText">DEMO DATA</span></div>
+      <div class="updated" id="updatedText">Historis Jan–Jul 2026</div>
+    </div>
+  </header>
+
+  <section class="card filters">
+    <div class="filter-head">
+      <div class="filter-badge">⌕</div>
+      <div><b>Filter Kinerja</b><small>Pilih rentang tanggal dan jenis penggantian meter</small></div>
+    </div>
+    <div class="controls">
+      <label><span>Periode Awal</span><input id="startDate" type="date"></label>
+      <label><span>Periode Akhir</span><input id="endDate" type="date"></label>
+      <label><span>Jenis Ganti Meter</span>
+        <select id="typeFilter">
+          <option value="ALL">TOTAL</option>
+          <option value="METER TUA">METER TUA</option>
+          <option value="METER RUSAK">METER RUSAK</option>
+          <option value="METER GARANSI">METER GARANSI</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button class="primary" id="refreshBtn">Refresh</button>
+        <button class="ghost" id="liveBtn">Google Sheets</button>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </section>
+
+  <section class="kpis">
+    <article class="card kpi k1"><div class="kicon">◎</div><div><div class="klabel">Target Kumulatif</div><div class="kvalue" id="targetCum">0</div></div></article>
+    <article class="card kpi k2"><div class="kicon">↗</div><div><div class="klabel">Realisasi Kumulatif</div><div class="kvalue" id="realCum">0</div></div></article>
+    <article class="card kpi k3"><div class="kicon">%</div><div><div class="klabel">Capaian Kumulatif</div><div class="kvalue" id="capCum">0%</div></div></article>
+    <article class="card kpi k4"><div class="kicon">▣</div><div><div class="klabel">Realisasi Periode</div><div class="kvalue" id="realPeriod">0</div></div></article>
+    <article class="card kpi k5"><div class="kicon">41</div><div><div class="klabel">UP3 Dipantau</div><div class="kvalue" id="up3CountKpi">0</div></div></article>
+  </section>
+
+  <div class="section">
+    <div><div class="kicker">EXECUTIVE VIEW</div><h2>Perbandingan Kinerja</h2></div>
+    <div class="legend"><i class="i-good"></i>≥100% <i class="i-warn"></i>90–99,9% <i class="i-bad"></i>&lt;90%</div>
   </div>
 
-  <script src="app.js"></script>
+  <section class="grid">
+    <div class="card">
+      <div class="panel-head"><div><h3>Unit Induk</h3><p>Capaian sampai tanggal akhir periode</p></div><div class="count">6 UNIT INDUK</div></div>
+      <div class="tablebox"><table id="unitTable"><thead><tr><th>UNIT INDUK</th><th>TARGET KUM.</th><th>REAL KUM.</th><th>CAPAIAN</th><th>TARGET PERIODE</th><th>REAL PERIODE</th><th>CAPAIAN</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <div class="card">
+      <div class="panel-head"><div><h3>UP3</h3><p>Seluruh UP3 tetap ditampilkan</p></div><div class="count" id="up3Count">0 UP3</div></div>
+      <div class="tablebox large"><table id="up3Table"><thead><tr><th>UNIT INDUK</th><th>UP3</th><th>TARGET KUM.</th><th>REAL KUM.</th><th>CAPAIAN</th><th>TARGET PERIODE</th><th>REAL PERIODE</th><th>CAPAIAN</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="card rank-card">
+    <div class="panel-head"><div><div class="kicker">RANKING</div><h3>Ranking Capaian Kumulatif per UP3</h3><p>Semua UP3 • tertinggi → terendah</p></div><div class="count" id="rankCount">0 UP3</div></div>
+    <div class="rank-list" id="rankList"></div>
+    <div class="rank-footer">Bar horizontal menunjukkan persentase capaian terhadap target kumulatif pada tanggal akhir periode.</div>
+  </section>
+
+  <div class="footer"><span>Dashboard Ganti Meter • Google Sheets + GitHub Pages</span><span id="footerSource">Demo historis Jan–Jul 2026</span></div>
+</div>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-card">
+    <div class="modal-head"><div><div class="kicker">SUMBER DATA</div><h2>Hubungkan Google Sheets</h2></div><button class="close" id="close">×</button></div>
+    <p>Masukkan Spreadsheet ID. Dashboard membaca <b>02_SUMMARY_HARIAN</b> dan <b>03_SUMMARY_JENIS</b>.</p>
+    <label><span>Spreadsheet ID</span><input id="sheetId" placeholder="1AbC..."></label>
+    <div class="sheet-row">
+      <label><span>Sheet Summary</span><input id="sheetName" value="02_SUMMARY_HARIAN"></label>
+      <label><span>Sheet Jenis</span><input id="typeSheetName" value="03_SUMMARY_JENIS"></label>
+    </div>
+    <div class="modal-actions"><button class="ghost" id="demoBtn">Gunakan Demo</button><button class="primary" id="connectBtn">Hubungkan</button></div>
+    <div class="help" id="help"></div>
+  </div>
+</div>
+
+<script>
+const state={
+  daily:[],types:[],mode:"demo",sheetId:"",sheetName:"02_SUMMARY_HARIAN",typeSheetName:"03_SUMMARY_JENIS"
+};
+
+const $=id=>document.getElementById(id);
+
+function parseDate(v){
+  if(!v)return null;
+  if(v instanceof Date)return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  const s=String(v).trim();
+  let m=s.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+  m=s.match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+  if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  const d=new Date(s);
+  return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
+}
+function inputDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function fmtDate(d){return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear()}
+function nfmt(v){return Math.round(v).toLocaleString("id-ID")}
+function pct(v){return (v*100).toFixed(1)+"%"}
+function cls(v){return v>=1?"good":v>=.9?"warn":"bad"}
+
+function seedDemo(){
+  state.daily=(window.DEMO_DATA?.daily||[]).map(r=>({...r,tanggalObj:parseDate(r.tanggal),target_hari:+r.target_hari||0,real_hari:+r.realisasi_harian||0,target_kum:+r.target_kumulatif||0,real_kum:+r.realisasi_kumulatif||0}));
+  state.types=(window.DEMO_DATA?.types||[]).map(r=>({...r,tanggalObj:parseDate(r.tanggal),real:+r.realisasi||0}));
+  state.mode="demo";
+  $("modeText").textContent="DEMO DATA";
+  $("footerSource").textContent="Demo historis Jan–Jul 2026";
+  setDates();
+  render();
+}
+function setDates(){
+  const dates=state.daily.map(r=>r.tanggalObj).filter(Boolean).sort((a,b)=>a-b);
+  if(!dates.length)return;
+  $("startDate").value=inputDate(dates[0]);
+  $("endDate").value=inputDate(dates[dates.length-1]);
+  $("updatedText").textContent=(state.mode==="live"?"Data live":"Historis Jan–Jul 2026")+" • s.d. "+fmtDate(dates[dates.length-1]);
+}
+function up3TypeCumulative(up3,end){
+  const selected=$("typeFilter").value;
+  const rows=state.types.filter(r=>r.tanggalObj&&r.tanggalObj<=end&&String(r.up3).toUpperCase()===String(up3).toUpperCase());
+  if(selected==="ALL")return rows.reduce((s,r)=>s+r.real,0);
+  return rows.filter(r=>String(r.jenis_ganti_meter).toUpperCase()===selected).reduce((s,r)=>s+r.real,0);
+}
+function up3TypePeriod(up3,start,end){
+  const selected=$("typeFilter").value;
+  const rows=state.types.filter(r=>r.tanggalObj&&r.tanggalObj>=start&&r.tanggalObj<=end&&String(r.up3).toUpperCase()===String(up3).toUpperCase());
+  if(selected==="ALL")return rows.reduce((s,r)=>s+r.real,0);
+  return rows.filter(r=>String(r.jenis_ganti_meter).toUpperCase()===selected).reduce((s,r)=>s+r.real,0);
+}
+function calculate(){
+  const start=parseDate($("startDate").value),end=parseDate($("endDate").value);
+  if(!start||!end||start>end)return null;
+  const periodRows=state.daily.filter(r=>r.tanggalObj&&r.tanggalObj>=start&&r.tanggalObj<=end);
+  const snap=state.daily.filter(r=>r.tanggalObj&&r.tanggalObj.getTime()===end.getTime());
+  const byUp3=snap.map(s=>{
+    const targetCum=s.target_kum;
+    const realCum=$("typeFilter").value==="ALL"?s.real_kum:up3TypeCumulative(s.up3,end);
+    const targetPeriod=periodRows.filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase()).reduce((a,x)=>a+x.target_hari,0);
+    const realPeriod=$("typeFilter").value==="ALL"
+      ?periodRows.filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase()).reduce((a,x)=>a+x.real_hari,0)
+      :up3TypePeriod(s.up3,start,end);
+    return {...s,targetCum,realCum,capCum:targetCum?realCum/targetCum:0,targetPeriod,realPeriod,capPeriod:targetPeriod?realPeriod/targetPeriod:0};
+  });
+  const units=new Map();
+  byUp3.forEach(r=>{
+    if(!units.has(r.unit_induk))units.set(r.unit_induk,{unit_induk:r.unit_induk,targetCum:0,realCum:0,targetPeriod:0,realPeriod:0});
+    const u=units.get(r.unit_induk);u.targetCum+=r.targetCum;u.realCum+=r.realCum;u.targetPeriod+=r.targetPeriod;u.realPeriod+=r.realPeriod;
+  });
+  [...units.values()].forEach(u=>{u.capCum=u.targetCum?u.realCum/u.targetCum:0;u.capPeriod=u.targetPeriod?u.realPeriod/u.targetPeriod:0});
+  return {start,end,byUp3,byUnit:[...units.values()],totals:{
+    targetCum:byUp3.reduce((s,r)=>s+r.targetCum,0),
+    realCum:byUp3.reduce((s,r)=>s+r.realCum,0),
+    realPeriod:byUp3.reduce((s,r)=>s+r.realPeriod,0)
+  }};
+}
+function render(){
+  const d=calculate();
+  if(!d){$("note").textContent="Periode tidak valid.";return}
+  $("targetCum").textContent=nfmt(d.totals.targetCum);
+  $("realCum").textContent=nfmt(d.totals.realCum);
+  $("capCum").textContent=pct(d.totals.targetCum?d.totals.realCum/d.totals.targetCum:0);
+  $("realPeriod").textContent=nfmt(d.totals.realPeriod);
+  $("up3CountKpi").textContent=d.byUp3.length;
+  $("up3Count").textContent=d.byUp3.length+" UP3";
+  $("rankCount").textContent=d.byUp3.length+" UP3";
+  $("note").textContent=(state.mode==="live"?"Live Google Sheets":"Demo Summary Historis Jan–Jul 2026")+" • "+fmtDate(d.start)+" s.d. "+fmtDate(d.end)+" • "+($("typeFilter").value==="ALL"?"TOTAL":$("typeFilter").value);
+  $("unitTable").querySelector("tbody").innerHTML=d.byUnit.sort((a,b)=>a.unit_induk.localeCompare(b.unit_induk)).map(r=>`
+    <tr><td class="name">${esc(r.unit_induk)}</td><td>${nfmt(r.targetCum)}</td><td>${nfmt(r.realCum)}</td><td class="${cls(r.capCum)}">${pct(r.capCum)}</td><td>${nfmt(r.targetPeriod)}</td><td>${nfmt(r.realPeriod)}</td><td class="${cls(r.capPeriod)}">${pct(r.capPeriod)}</td></tr>`).join("");
+  const sorted=[...d.byUp3].sort((a,b)=>b.capCum-a.capCum||a.up3.localeCompare(b.up3));
+  $("up3Table").querySelector("tbody").innerHTML=sorted.map(r=>`
+    <tr><td class="name">${esc(r.unit_induk)}</td><td class="up3">${esc(r.up3)}</td><td>${nfmt(r.targetCum)}</td><td>${nfmt(r.realCum)}</td><td class="${cls(r.capCum)}">${pct(r.capCum)}</td><td>${nfmt(r.targetPeriod)}</td><td>${nfmt(r.realPeriod)}</td><td class="${cls(r.capPeriod)}">${pct(r.capPeriod)}</td></tr>`).join("");
+  renderRank(sorted);
+}
+function renderRank(rows){
+  const max=Math.max(...rows.map(r=>r.capCum),1);
+  $("rankList").innerHTML=rows.map((r,i)=>{
+    const w=Math.min((r.capCum/max)*100,100);
+    const bar=r.capCum>=1?"bar-good":r.capCum>=.9?"bar-warn":"bar-bad";
+    const value=r.capCum;
+    return `<div class="rank-row"><div class="rank-name" title="${esc(r.up3)}">${i+1}. ${esc(r.up3)}</div><div class="rank-track"><div class="rank-fill ${bar}" style="width:${w}%"></div></div><div class="rank-value ${cls(value)}">${pct(value)}</div></div>`
+  }).join("");
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])}
+
+async function loadCsv(id,name){
+  const url=`https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
+  const res=await fetch(url,{cache:"no-store"});
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  return parseCsv(await res.text());
+}
+function parseCsv(text){
+  const rows=[];let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i],nx=text[i+1];
+    if(q){if(ch==='"'&&nx==='"'){cell+='"';i++}else if(ch==='"')q=false;else cell+=ch}
+    else{if(ch==='"')q=true;else if(ch===','){row.push(cell);cell=""}else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell=""}else if(ch!=='\r')cell+=ch}
+  }
+  if(cell.length||row.length){row.push(cell);rows.push(row)}
+  const h=rows.shift()||[];
+  return rows.filter(r=>r.some(x=>x!=="")).map(r=>{const o={};h.forEach((x,i)=>o[x]=r[i]??"");return o});
+}
+function normalizeDaily(rows){return rows.map(r=>({...r,tanggalObj:parseDate(r.tanggal),target_hari:+r.target_hari||0,real_hari:+r.realisasi_harian||0,target_kum:+r.target_kumulatif||0,real_kum:+r.realisasi_kumulatif||0})).filter(r=>r.tanggalObj)}
+function normalizeTypes(rows){return rows.map(r=>({...r,tanggalObj:parseDate(r.tanggal),real:+r.realisasi||0})).filter(r=>r.tanggalObj)}
+async function connectLive(){
+  const id=$("sheetId").value.trim();
+  if(!id){$("help").textContent="Spreadsheet ID belum diisi.";return}
+  $("help").textContent="Membaca Google Sheets...";
+  try{
+    const [d,t]=await Promise.all([loadCsv(id,$("sheetName").value.trim()||"02_SUMMARY_HARIAN"),loadCsv(id,$("typeSheetName").value.trim()||"03_SUMMARY_JENIS")]);
+    state.daily=normalizeDaily(d);state.types=normalizeTypes(t);
+    if(!state.daily.length)throw new Error("Summary Harian kosong.");
+    state.mode="live";state.sheetId=id;state.sheetName=$("sheetName").value.trim()||"02_SUMMARY_HARIAN";state.typeSheetName=$("typeSheetName").value.trim()||"03_SUMMARY_JENIS";
+    $("modal").classList.add("hidden");
+    $("modeText").textContent="GOOGLE SHEETS";$("footerSource").textContent="Live • Google Sheets";setDates();render();
+  }catch(e){$("help").textContent="Gagal terhubung: "+e.message}
+}
+$("refreshBtn").onclick=render;
+$("startDate").onchange=render;$("endDate").onchange=render;$("typeFilter").onchange=render;
+$("liveBtn").onclick=()=>{$("modal").classList.remove("hidden");$("sheetId").value=state.sheetId||"";$("sheetName").value=state.sheetName;$("typeSheetName").value=state.typeSheetName;$("help").textContent=""};
+$("close").onclick=()=>$("modal").classList.add("hidden");
+$("demoBtn").onclick=()=>{$("modal").classList.add("hidden");seedDemo()};
+$("connectBtn").onclick=connectLive;
+seedDemo();
+</script>
 </body>
 </html>
