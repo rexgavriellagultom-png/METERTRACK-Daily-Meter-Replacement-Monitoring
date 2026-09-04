@@ -1,24 +1,17 @@
-# Dashboard Ganti Meter Harian
+# Ganti-Meter-Harian
 
-Dashboard GitHub Pages + Google Sheets untuk monitoring capaian kinerja ganti meter.
+Dashboard GitHub Pages untuk monitoring capaian kinerja ganti meter.
 
 ## Fitur
-- Filter Periode Awal & Periode Akhir
-- Filter Jenis Ganti Meter: TOTAL, METER TUA, METER RUSAK, METER GARANSI
-- KPI target kumulatif, realisasi kumulatif, capaian kumulatif, realisasi periode, jumlah UP3
-- Tabel Unit Induk
-- Tabel UP3
-- Ranking seluruh UP3 berdasarkan capaian kumulatif
-- Demo mode menggunakan Summary Historis Jan–Jul 2026
-- Live mode membaca `02_SUMMARY_HARIAN` dan `03_SUMMARY_JENIS` dari Google Sheets
-
-## Struktur
-- `index.html`
-- `styles.css`
-- `app.js`
-- `demo-data.js`
-- `README.md`
-
-## GitHub Pages
-Repository: `Ganti-Meter-Harian`
-Source: branch `main`, folder `/ (root)`.
+- Filter Periode Awal
+- Filter Periode Akhir
+- Filter Jenis Ganti Meter
+- KPI Target Kumulatif
+- KPI Realisasi Kumulatif
+- KPI Capaian Kumulatif
+- KPI Realisasi Periode
+- Tabel 6 Unit Induk tanpa horizontal scroll
+- Tabel seluruh UP3
+- Ranking seluruh UP3 dengan persentase + icon trophy
+- Demo data Januari–Juli 2026 (total sumber 543.363)
+- Mode live membaca Google Sheets
