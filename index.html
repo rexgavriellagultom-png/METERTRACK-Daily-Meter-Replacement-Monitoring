@@ -2,107 +2,170 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ganti Meter • Dashboard Kinerja 2026</title>
-<style>
-:root{--bg:#eef3f7;--card:#fff;--ink:#102334;--muted:#6d7d8b;--line:#dde5ec;--navy:#0a4b6d;--navy2:#073850;--blue:#3d8bc9;--teal:#1d9a91;--green:#1a9861;--amber:#c18a1e;--red:#d95454;--purple:#7258c6;--soft:#f7fafc;--shadow:0 12px 30px rgba(27,48,66,.08)}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 0 0,#dcecf5 0,transparent 28%),radial-gradient(circle at 100% 0,#e4f2ef 0,transparent 28%),var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}.page{max-width:1860px;margin:auto;padding:24px 26px 34px}
-.top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:14px}.brand-icon{width:56px;height:56px;border-radius:17px;background:linear-gradient(145deg,var(--navy),#0d6b92);color:#fff;display:grid;place-items:center;font-size:25px;box-shadow:0 10px 22px rgba(10,75,109,.22)}.kicker{font-size:10px;letter-spacing:.2em;color:var(--navy);font-weight:900}.title{margin:4px 0 4px;font-size:34px;line-height:1.05;font-weight:900;letter-spacing:-.035em}.title span{color:var(--navy);font-weight:500}.subtitle{font-size:13px;color:var(--muted)}
-.status{text-align:right}.pill{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:10px;font-weight:900;color:var(--navy);box-shadow:var(--shadow)}.pill-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}.updated{margin-top:6px;color:var(--muted);font-size:10px}
-.card{background:rgba(255,255,255,.96);border:1px solid rgba(211,223,232,.92);border-radius:16px;box-shadow:var(--shadow)}.filters{padding:16px 18px;margin-bottom:14px}.filter-title{display:flex;gap:10px;align-items:center;margin-bottom:12px}.filter-icon{width:36px;height:36px;border-radius:11px;background:#eaf3f8;color:var(--navy);display:grid;place-items:center;font-size:18px;font-weight:900}.filter-title b{font-size:13px}.filter-title small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.controls{display:grid;grid-template-columns:1fr 1fr 1.25fr auto;gap:10px;align-items:end}label{font-size:10px;font-weight:850;color:#566775}label span{display:block;margin-bottom:6px}input,select{width:100%;height:41px;border:1px solid #cad6e0;border-radius:10px;background:#fff;color:var(--ink);padding:0 11px;font:inherit;font-size:13px;outline:none}input:focus,select:focus{border-color:#7da8c2;box-shadow:0 0 0 3px rgba(61,139,201,.11)}.actions{display:flex;gap:8px}.btn{height:41px;border-radius:10px;border:1px solid transparent;padding:0 15px;font:inherit;font-weight:850;cursor:pointer}.primary{background:var(--navy);color:#fff;box-shadow:0 8px 16px rgba(10,75,109,.15)}.ghost{background:#fff;color:var(--navy);border-color:#cad6e0}.note{margin-top:9px;font-size:10px;color:var(--muted)}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:22px}.kpi{position:relative;overflow:hidden;padding:14px 15px;min-height:76px;display:flex;align-items:center;gap:12px}.kpi:after{content:"";position:absolute;width:84px;height:84px;right:-31px;top:-34px;border-radius:50%;background:#f2f7fa}.kicon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:16px;font-weight:900}.k1 .kicon{background:#e9f4fb;color:var(--blue)}.k2 .kicon{background:#e9f8f6;color:var(--teal)}.k3 .kicon{background:#eaf8f0;color:var(--green)}.k4 .kicon{background:#fff5df;color:var(--amber)}.k5 .kicon{background:#f1edff;color:var(--purple)}.klabel{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:900}.kvalue{margin-top:4px;font-size:25px;font-weight:900;line-height:1}
-.section{display:flex;justify-content:space-between;align-items:flex-end;margin:5px 2px 10px}.section-title{display:flex;align-items:center;gap:10px}.section-icon{width:30px;height:30px;border-radius:9px;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:14px}.section h2{font-size:18px;margin:0 0 2px}.section-sub{font-size:10px;color:var(--muted)}.legend{font-size:9px;color:var(--muted)}.legend em{font-style:normal;margin-left:9px}.lg{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px}.lg.g{background:var(--green)}.lg.a{background:var(--amber)}.lg.r{background:var(--red)}
-.grid{display:grid;grid-template-columns:.95fr 1.55fr;gap:14px;margin-bottom:14px}.panel-head{padding:14px 15px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.panel-head h3{margin:4px 0 3px;font-size:15px}.panel-head p{margin:0;color:var(--muted);font-size:10px}.count{font-size:9px;font-weight:900;background:#eef5f9;color:var(--navy);padding:6px 9px;border-radius:999px;white-space:nowrap}.tablebox{overflow-y:auto;overflow-x:hidden}.unitbox{max-height:520px}.upbox{max-height:560px}table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:10px}th,td{padding:9px 7px;border-bottom:1px solid #edf1f4;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}th:first-child,td:first-child{text-align:left}th{position:sticky;top:0;z-index:3;background:#f7f9fb;color:#758490;font-size:8.5px;font-weight:900;letter-spacing:.03em}tbody tr:hover{background:#f8fbfd}.name{text-align:left;font-weight:750}.up3{text-align:left;font-weight:800}.cap{font-weight:900}.good{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}
-/* Unit Induk: fit all 7 columns without horizontal scroll */
-#unitTable th:nth-child(1){width:26%}#unitTable th:nth-child(2),#unitTable th:nth-child(3),#unitTable th:nth-child(4),#unitTable th:nth-child(5),#unitTable th:nth-child(6),#unitTable th:nth-child(7){width:12.333%}
-/* UP3 */#up3Table th:nth-child(1){width:20%}#up3Table th:nth-child(2){width:17%}#up3Table th:nth-child(n+3){width:10.5%}
-.rank{overflow:hidden}.rank-head{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 15px 12px;border-bottom:1px solid var(--line)}.rank-head h3{margin:4px 0 2px;font-size:15px}.rank-head p{margin:0;font-size:10px;color:var(--muted)}.rank-list{padding:11px 15px 16px}.rank-row{display:grid;grid-template-columns:210px minmax(160px,1fr) 64px 30px;gap:10px;align-items:center;padding:5px 0}.rank-name{font-size:10px;font-weight:800;color:#556571;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.track{height:14px;border-radius:999px;background:#edf1f4;overflow:hidden}.fill{height:100%;border-radius:999px}.fill.good{background:linear-gradient(90deg,#56bd90,#188d5b)}.fill.warn{background:linear-gradient(90deg,#ebc56d,#bd841c)}.fill.bad{background:linear-gradient(90deg,#e98787,#d45252)}.rank-val{text-align:right;font-size:10px;font-weight:900}.win{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:#fff6d9;border:1px solid #f0df9e;font-size:15px}.rank-row:nth-child(n+2) .win{opacity:.9}.rank-foot{border-top:1px solid #edf1f4;padding:9px 15px 13px;color:var(--muted);font-size:9px}
-.footer{display:flex;justify-content:space-between;gap:12px;color:#7e8b95;font-size:9px;margin-top:12px}.modal{position:fixed;inset:0;background:rgba(15,30,43,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}.hidden{display:none}.modal-card{width:min(700px,100%);background:#fff;border-radius:16px;padding:20px;box-shadow:0 25px 80px rgba(0,0,0,.25)}.modal-head{display:flex;justify-content:space-between}.modal-head h2{margin:5px 0 0;font-size:20px}.close{border:0;background:transparent;font-size:28px;color:#7b8994;cursor:pointer}.modal p{font-size:12px;line-height:1.55;color:var(--muted)}.sheet-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.help{font-size:10px;color:var(--muted);margin-top:9px}
-@media(max-width:1160px){.controls{grid-template-columns:1fr 1fr}.actions{grid-column:1/-1}.kpis{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}}
-@media(max-width:720px){.page{padding:14px 12px 25px}.top{flex-direction:column;align-items:flex-start}.status{text-align:left}.controls{grid-template-columns:1fr}.actions{grid-column:auto}.kpis{grid-template-columns:1fr 1fr}.title{font-size:28px}.rank-row{grid-template-columns:125px minmax(100px,1fr) 55px 26px}.sheet-row{grid-template-columns:1fr}.tablebox{overflow-x:auto}#unitTable{min-width:0}}
-</style>
-<script src="demo-data.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MeterTrack – Upload Data Ganti Meter 2026</title>
+<meta name="description" content="Upload dan proses data realisasi Ganti Meter 2026">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="page">
-  <header class="top">
+<div class="shell">
+  <header class="topbar">
     <div class="brand">
-      <div class="brand-icon">⚡</div>
-      <div><div class="kicker">MONITORING GANTI METER</div><div class="title">Capaian Kinerja <span>2026</span></div><div class="subtitle">Monitoring realisasi harian & kumulatif per Unit Induk dan UP3</div></div>
+      <div class="brand-mark">⚡</div>
+      <div>
+        <div class="eyebrow">MONITORING GANTI METER</div>
+        <h1>MeterTrack 2026</h1>
+        <p>Upload & Processing Data Realisasi</p>
+      </div>
     </div>
-    <div class="status"><div class="pill"><span class="pill-dot"></span><span id="mode">DEMO DATA</span></div><div class="updated" id="updated">Historis Jan–Jul 2026</div></div>
+    <div class="status-pill" id="connectionStatus"><span class="dot"></span> Belum terhubung</div>
   </header>
 
-  <section class="card filters">
-    <div class="filter-title"><div class="filter-icon">⌕</div><div><b>Filter Kinerja</b><small>Pilih periode kalender dan jenis penggantian meter</small></div></div>
-    <div class="controls">
-      <label><span>Periode Awal</span><input id="startDate" type="date"></label>
-      <label><span>Periode Akhir</span><input id="endDate" type="date"></label>
-      <label><span>Jenis Ganti Meter</span><select id="typeFilter"><option value="ALL">TOTAL</option><option value="METER TUA">METER TUA</option><option value="METER RUSAK">METER RUSAK</option><option value="METER GARANSI">METER GARANSI</option></select></label>
-      <div class="actions"><button class="btn primary" id="refreshBtn">↻ Refresh</button><button class="btn ghost" id="uploadBtn">⬆ Upload Data</button><button class="btn ghost" id="liveBtn">↗ Google Sheets</button></div>
+  <main>
+    <section class="hero">
+      <div>
+        <span class="badge">V2 • RESUMABLE PROCESSING</span>
+        <h2>Upload Data Realisasi</h2>
+        <p>HISTORY dan HARIAN diproses bertahap agar file besar tidak berhenti karena batas waktu Apps Script.</p>
+      </div>
+      <div class="hero-note">
+        <div class="note-title">Aturan perhitungan</div>
+        <div class="note-grid">
+          <div><b>HISTORY</b><span>SUM kolom jumlah</span></div>
+          <div><b>HARIAN</b><span>COUNT baris</span></div>
+          <div><b>Minggu</b><span>Target 0, realisasi tetap dihitung</span></div>
+          <div><b>TUNTAS</b><span>Realisasi ≥ Target Tahunan</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <div class="section-kicker">1. KONFIGURASI</div>
+          <h3>Endpoint Database</h3>
+        </div>
+        <button class="ghost" id="testBtn" type="button">Tes Endpoint</button>
+      </div>
+
+      <div class="form-grid">
+        <label class="field span-2">
+          <span>Google Apps Script Web App URL</span>
+          <input id="scriptUrl" type="url" placeholder="https://script.google.com/macros/s/....../exec">
+          <small>Masukkan URL Web App V2 setelah Apps Script selesai di-deploy.</small>
+        </label>
+
+        <label class="field span-2">
+          <span>Spreadsheet ID Database V2</span>
+          <input id="spreadsheetId" type="text" value="1fSlfqfQLC9B5QN7tg0VhqqUVQYqL5xJT3QvUbpVG0Qg" readonly>
+          <small>Sudah dikunci ke database V2 yang digunakan.</small>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <div class="section-kicker">2. UPLOAD</div>
+          <h3>Pilih Mode Data</h3>
+        </div>
+        <div class="mode-tabs">
+          <button class="mode active" data-mode="HISTORIS">Historis</button>
+          <button class="mode" data-mode="HARIAN">Harian</button>
+        </div>
+      </div>
+
+      <div class="mode-help" id="modeHelp">
+        <b>Historis:</b> satu file dapat berisi seluruh UID dan periode panjang (Jan–Jul, Agustus, dan seterusnya). Realisasi dihitung dari <b>SUM(jumlah)</b>.
+      </div>
+
+      <div class="form-grid">
+        <label class="field">
+          <span>Unit Induk</span>
+          <select id="unitInduk">
+            <option value="SEMUA">SEMUA UID</option>
+          </select>
+          <small>Untuk HISTORY selalu SEMUA UID.</small>
+        </label>
+
+        <label class="field">
+          <span>Periode Awal</span>
+          <input id="startDate" type="date" value="2026-01-01">
+        </label>
+
+        <label class="field">
+          <span>Periode Akhir</span>
+          <input id="endDate" type="date" value="2026-07-31">
+        </label>
+
+        <label class="field">
+          <span>File Realisasi</span>
+          <input id="fileInput" type="file" accept=".xlsx,.xls,.csv">
+          <small>Excel / CSV. Untuk HISTORY gunakan kolom <b>jumlah</b>.</small>
+        </label>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <div class="drop-icon">↥</div>
+        <div>
+          <b>Tarik file ke sini</b>
+          <span>atau klik area ini untuk memilih file</span>
+        </div>
+      </div>
+
+      <div class="selected-file" id="selectedFile" hidden>
+        <div class="file-icon">XLS</div>
+        <div class="file-meta">
+          <b id="fileName">-</b>
+          <span id="fileSize">-</span>
+        </div>
+        <button class="remove-file" id="removeFile" type="button">×</button>
+      </div>
+
+      <div class="action-row">
+        <button class="primary" id="uploadBtn" type="button">Mulai Upload & Proses</button>
+        <button class="secondary" id="resetBtn" type="button">Reset</button>
+      </div>
+    </section>
+
+    <section class="card progress-card" id="progressCard" hidden>
+      <div class="progress-head">
+        <div>
+          <div class="section-kicker">3. STATUS PROSES</div>
+          <h3 id="progressTitle">Menyiapkan JOB...</h3>
+          <p id="progressText">Menunggu...</p>
+        </div>
+        <div class="progress-percent" id="progressPercent">0%</div>
+      </div>
+      <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-stats">
+        <div><span>Diproses</span><b id="processedRows">0</b></div>
+        <div><span>Total baris</span><b id="totalRows">0</b></div>
+        <div><span>Realisasi</span><b id="realization">0</b></div>
+        <div><span>Status</span><b id="jobStatus">READY</b></div>
+      </div>
+    </section>
+
+    <section class="card result-card" id="resultCard" hidden>
+      <div class="result-icon" id="resultIcon">✓</div>
+      <div>
+        <div class="section-kicker">HASIL</div>
+        <h3 id="resultTitle">Upload berhasil</h3>
+        <p id="resultMessage"></p>
+      </div>
+    </section>
+
+    <div class="warning" id="warning">
+      <b>Penting:</b> Jangan menjalankan upload HISTORY yang sama berulang kali. Sistem membuat <i>job_id</i> dan mencatat status pada <code>07_UPLOAD_LOG</code>.
     </div>
-    <div class="note" id="note"></div>
-  </section>
+  </main>
 
-  <section class="kpis">
-    <article class="card kpi k1"><div class="kicon">🎯</div><div><div class="klabel">Target Kumulatif</div><div class="kvalue" id="targetCum">0</div></div></article>
-    <article class="card kpi k2"><div class="kicon">⇧</div><div><div class="klabel">Realisasi Kumulatif</div><div class="kvalue" id="realCum">0</div></div></article>
-    <article class="card kpi k3"><div class="kicon">%</div><div><div class="klabel">Capaian Kumulatif</div><div class="kvalue" id="capCum">0%</div></div></article>
-    <article class="card kpi k4"><div class="kicon">▣</div><div><div class="klabel">Realisasi Periode</div><div class="kvalue" id="realPeriod">0</div></div></article>
-    <article class="card kpi k5"><div class="kicon">◎</div><div><div class="klabel">UP3 Dipantau</div><div class="kvalue" id="up3Kpi">0</div></div></article>
-  </section>
-
-  <div class="section"><div class="section-title"><div class="section-icon">▤</div><div><h2>Perbandingan Kinerja</h2><div class="section-sub">Capaian kumulatif dan realisasi pada periode terpilih</div></div></div><div class="legend"><span class="lg g"></span>Hijau ≥100% <em><span class="lg a"></span>Amber 90–99,9%</em> <em><span class="lg r"></span>Merah &lt;90%</em></div></div>
-
-  <section class="grid">
-    <div class="card">
-      <div class="panel-head"><div><div class="kicker">UNIT INDUK</div><h3>6 Unit Induk</h3><p>Tabel otomatis penuh tanpa scroll horizontal</p></div><div class="count">KUMULATIF • PERIODE</div></div>
-      <div class="tablebox unitbox"><table id="unitTable"><thead><tr><th>UNIT INDUK</th><th>TARGET KUM.</th><th>REAL KUM.</th><th>CAP.</th><th>TARGET PER.</th><th>REAL PER.</th><th>CAP.</th></tr></thead><tbody></tbody></table></div>
-    </div>
-    <div class="card">
-      <div class="panel-head"><div><div class="kicker">UP3</div><h3>Performa seluruh UP3</h3><p>Urutan berdasarkan capaian kumulatif</p></div><div class="count" id="up3Count">0 UP3</div></div>
-      <div class="tablebox upbox"><table id="up3Table"><thead><tr><th>UNIT INDUK</th><th>UP3</th><th>TARGET KUM.</th><th>REAL KUM.</th><th>CAP.</th><th>TARGET PER.</th><th>REAL PER.</th><th>CAP.</th></tr></thead><tbody></tbody></table></div>
-    </div>
-  </section>
-
-  <section class="card rank">
-    <div class="rank-head"><div><div class="kicker">RANKING</div><h3>Ranking Capaian Kumulatif per UP3</h3><p>Semua UP3 • tertinggi → terendah • persentase tampil di ujung bar</p></div><div class="count" id="rankCount">0 UP3</div></div>
-    <div class="rank-list" id="rankList"></div>
-    <div class="rank-foot">🏆 menandakan UP3 dengan capaian ≥100%. Warna bar mengikuti status capaian.</div>
-  </section>
-
-  <div class="footer"><span>Dashboard Ganti Meter • Google Sheets + GitHub Pages</span><span id="sourceText">Demo historis Jan–Jul 2026 • Validasi sumber menggunakan kolom Jumlah (G)</span></div>
+  <footer>
+    MeterTrack 2026 • Database V2 Resumable
+  </footer>
 </div>
 
-<div class="modal hidden" id="uploadModal"><div class="modal-card"><div class="modal-head"><div><div class="kicker">INPUT DATA</div><h2>Upload Data Realisasi</h2></div><button class="close" id="uploadClose">×</button></div><p>Upload Excel/CSV melalui dashboard. Untuk <b>Historis</b>, satu file dapat berisi seluruh Unit Induk (Jan–Jul atau Agustus). Untuk <b>Harian</b>, gunakan satu tanggal seperti 01/09/2026. Aturan hitung: <b>Historis = SUM kolom Jumlah (G)</b> • <b>Harian = hitung jumlah baris</b>.</p><div class="sheet-row"><label><span>Mode Data</span><select id="uploadMode"><option value="HISTORIS">Historis (Jan–Jul / Agustus)</option><option value="HARIAN">Harian (1 tanggal)</option></select></label><label><span>Unit Induk</span><select id="uploadUnit"><option value="ALL">SEMUA UID</option><option value="UID SULUTTENGGO">UID SULUTTENGGO</option><option value="UID SULSELRABAR">UID SULSELRABAR</option><option value="UIW MALUKU & MALUKU UTARA">UIW MALUKU & MALUKU UTARA</option><option value="UIW PAPUA & PAPUA BARAT">UIW PAPUA & PAPUA BARAT</option><option value="UIW NUSA TENGGARA TIMUR">UIW NUSA TENGGARA TIMUR</option><option value="UIW NUSA TENGGARA BARAT">UIW NUSA TENGGARA BARAT</option></select><small id="uploadUnitHelp">HISTORY: satu file berisi seluruh Unit Induk → SEMUA UID • hitung SUM(jumlah)</small></label></div><div class="sheet-row"><label><span>Periode Awal</span><input id="uploadStart" type="date" value="2026-01-01"></label><label><span>Periode Akhir</span><input id="uploadEnd" type="date" value="2026-07-31"></label></div><label><span>File Realisasi</span><input id="uploadFile" type="file" accept=".xlsx,.xls,.csv"></label><label style="margin-top:10px"><span>Google Apps Script Web App URL</span><input id="webAppUrl" value="https://script.google.com/macros/s/AKfycbyDtETwVrY8kMIwQEyaPQxWQ_m62gSVaoqJh_-3_MBZlU00Xsl7tDfgK8Mxs-xSUd5p/exec" placeholder="https://script.google.com/macros/s/.../exec"></label><label><span>Spreadsheet ID</span><input id="uploadSheetId" value="1e2C-olmZdvKCdbOdulJyRBlkBf8wNzCbCpJWLgWt9y0"></label><iframe name="uploadFrame" id="uploadFrame" style="display:none"></iframe><div class="modal-actions"><button class="btn ghost" id="uploadCancel">Batal</button><button class="btn primary" id="doUpload">Upload & Proses</button></div><div class="help" id="uploadHelp">Untuk Excel (.xlsx/.xls), backend Apps Script memerlukan Advanced Google Drive Service.</div></div></div>
-<div class="modal hidden" id="modal"><div class="modal-card"><div class="modal-head"><div><div class="kicker">SUMBER DATA</div><h2>Hubungkan Google Sheets</h2></div><button class="close" id="close">×</button></div><p>Masukkan Spreadsheet ID. Dashboard membaca <b>02_SUMMARY_HARIAN</b> dan <b>04_SUMMARY_JENIS</b>.</p><label><span>Spreadsheet ID</span><input id="sheetId" placeholder="1AbC..."></label><div class="sheet-row"><label><span>Sheet Summary</span><input id="sheetName" value="02_SUMMARY_HARIAN"></label><label><span>Sheet Jenis</span><input id="typeSheetName" value="04_SUMMARY_JENIS"></label></div><div class="modal-actions"><button class="btn ghost" id="demoBtn">Gunakan Demo</button><button class="btn primary" id="connectBtn">Hubungkan</button></div><div class="help" id="help"></div></div></div>
-<script>
-const state={daily:[],types:[],mode:'demo'};const $=id=>document.getElementById(id);
-const D=(window.DEMO_DATA||{});const normRows=(arr)=>arr.map(r=>({tanggal:r[0],unit_induk:r[1],up3:r[2],target_hari:+r[3]||0,realisasi_harian:+r[4]||0,target_kumulatif:+r[5]||0,realisasi_kumulatif:+r[6]||0,capaian_kumulatif:+r[7]||0,hari_aktif:!!r[8],tanggalObj:parseDate(r[0])}));
-const normTypes=(arr)=>arr.map(r=>({tanggal:r[0],unit_induk:r[1],up3:r[2],jenis_ganti_meter:r[3],realisasi:+r[4]||0,tanggalObj:parseDate(r[0])}));
-function parseDate(v){if(!v)return null;const s=String(v).trim();let m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);const d=new Date(s);return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate())}
-function inputDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function fmt(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()}
-function n(v){return Math.round(v).toLocaleString('id-ID')}
-function p(v){return (v*100).toFixed(1)+'%'}
-function c(v){return v>=1?'good':v>=.9?'warn':'bad'}
-function setDemo(){state.daily=normRows(D.daily||[]);state.types=normTypes(D.types||[]);state.mode='demo';$('mode').textContent='DEMO DATA';$('sourceText').textContent='Demo historis Jan–Jul 2026 • Validasi sumber menggunakan kolom Jumlah (G)';setDates();render()}
-function setDates(){const a=state.daily.map(x=>x.tanggalObj).filter(Boolean).sort((a,b)=>a-b);if(!a.length)return;$('startDate').value=inputDate(a[0]);$('endDate').value=inputDate(a[a.length-1]);$('updated').textContent=(state.mode==='live'?'Data live':'Historis Jan–Jul 2026')+' • s.d. '+fmt(a[a.length-1])}
-function typeCum(up3,end){const s=$('typeFilter').value;let r=state.types.filter(x=>x.tanggalObj&&x.tanggalObj<=end&&String(x.up3).toUpperCase()===String(up3).toUpperCase());if(s!=='ALL')r=r.filter(x=>String(x.jenis_ganti_meter).toUpperCase()===s);return r.reduce((a,x)=>a+x.realisasi,0)}
-function typePeriod(up3,start,end){const s=$('typeFilter').value;let r=state.types.filter(x=>x.tanggalObj&&x.tanggalObj>=start&&x.tanggalObj<=end&&String(x.up3).toUpperCase()===String(up3).toUpperCase());if(s!=='ALL')r=r.filter(x=>String(x.jenis_ganti_meter).toUpperCase()===s);return r.reduce((a,x)=>a+x.realisasi,0)}
-function calc(){const start=parseDate($('startDate').value),end=parseDate($('endDate').value);if(!start||!end||start>end)return null;const period=state.daily.filter(x=>x.tanggalObj>=start&&x.tanggalObj<=end);const snap=state.daily.filter(x=>x.tanggalObj&&x.tanggalObj.getTime()===end.getTime());const selected=$('typeFilter').value;const up3=snap.map(s=>{const rc=selected==='ALL'?s.realisasi_kumulatif:typeCum(s.up3,end);const rp=selected==='ALL'?period.filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase()).reduce((a,x)=>a+x.realisasi_harian,0):typePeriod(s.up3,start,end);const tp=period.filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase()).reduce((a,x)=>a+x.target_hari,0);return {...s,realCum:rc,capCum:s.target_kumulatif?s.target_kumulatif?rc/s.target_kumulatif:0:0,targetPeriod:tp,realPeriod:rp,capPeriod:tp?rp/tp:0}});const um=new Map();up3.forEach(r=>{if(!um.has(r.unit_induk))um.set(r.unit_induk,{unit_induk:r.unit_induk,targetCum:0,realCum:0,targetPeriod:0,realPeriod:0});const u=um.get(r.unit_induk);u.targetCum+=r.target_kumulatif;u.realCum+=r.realCum;u.targetPeriod+=r.targetPeriod;u.realPeriod+=r.realPeriod});[...um.values()].forEach(u=>{u.capCum=u.targetCum?u.realCum/u.targetCum:0;u.capPeriod=u.targetPeriod?u.realPeriod/u.targetPeriod:0});return{start,end,up3,units:[...um.values()],totals:{target:up3.reduce((a,r)=>a+r.target_kumulatif,0),real:up3.reduce((a,r)=>a+r.realCum,0),period:up3.reduce((a,r)=>a+r.realPeriod,0)}}}
-function render(){const d=calc();if(!d){$('note').textContent='Periode tidak valid.';return}const cap=d.totals.target?d.totals.real/d.totals.target:0;$('targetCum').textContent=n(d.totals.target);$('realCum').textContent=n(d.totals.real);$('capCum').textContent=p(cap);$('realPeriod').textContent=n(d.totals.period);$('up3Kpi').textContent=d.up3.length;$('up3Count').textContent=d.up3.length+' UP3';$('rankCount').textContent=d.up3.length+' UP3';$('note').textContent=(state.mode==='live'?'Live Google Sheets':'Demo Summary Historis Jan–Jul 2026')+' • '+fmt(d.start)+' s.d. '+fmt(d.end)+' • Jenis: '+($('typeFilter').value==='ALL'?'TOTAL':$('typeFilter').value);
-$('unitTable').querySelector('tbody').innerHTML=d.units.sort((a,b)=>a.unit_induk.localeCompare(b.unit_induk)).map(r=>`<tr><td class="name" title="${esc(r.unit_induk)}">${esc(r.unit_induk)}</td><td>${n(r.targetCum)}</td><td>${n(r.realCum)}</td><td class="cap ${c(r.capCum)}">${p(r.capCum)}</td><td>${n(r.targetPeriod)}</td><td>${n(r.realPeriod)}</td><td class="cap ${c(r.capPeriod)}">${p(r.capPeriod)}</td></tr>`).join('');
-const sorted=[...d.up3].sort((a,b)=>b.capCum-a.capCum||a.up3.localeCompare(b.up3));$('up3Table').querySelector('tbody').innerHTML=sorted.map(r=>`<tr><td class="name" title="${esc(r.unit_induk)}">${esc(r.unit_induk)}</td><td class="up3" title="${esc(r.up3)}">${esc(r.up3)}</td><td>${n(r.target_kumulatif)}</td><td>${n(r.realCum)}</td><td class="cap ${c(r.capCum)}">${p(r.capCum)}</td><td>${n(r.targetPeriod)}</td><td>${n(r.realPeriod)}</td><td class="cap ${c(r.capPeriod)}">${p(r.capPeriod)}</td></tr>`).join('');$('rankList').innerHTML=sorted.map((r,i)=>{const bar=Math.min((r.capCum/Math.max(1,sorted[0].capCum))*100,100);const cc=c(r.capCum);return `<div class="rank-row"><div class="rank-name" title="${esc(r.up3)}">${i+1}. ${esc(r.up3)}</div><div class="track"><div class="fill ${cc}" style="width:${bar}%"></div></div><div class="rank-val ${cc}">${p(r.capCum)}</div><div class="win">${r.capCum>=1?'🏆':'•'}</div></div>`}).join('')}
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-async function loadSheet(id,name){const u=`https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return parseCsv(await r.text())}
-function parseCsv(t){const rows=[];let row=[],cell='',q=false;for(let i=0;i<t.length;i++){const ch=t[i],nx=t[i+1];if(q){if(ch==='"'&&nx==='"'){cell+='"';i++}else if(ch==='"')q=false;else cell+=ch}else{if(ch==='"')q=true;else if(ch===','){row.push(cell);cell=''}else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell=''}else if(ch!=='\r')cell+=ch}}if(cell.length||row.length){row.push(cell);rows.push(row)}const h=rows.shift()||[];return rows.filter(r=>r.some(x=>x!=='')).map(r=>{const o={};h.forEach((x,i)=>o[x]=r[i]??'');return o})}
-function liveDaily(a){return a.map(r=>({...r,target_hari:+r.target_hari||0,realisasi_harian:+r.realisasi_harian||0,target_kumulatif:+r.target_kumulatif||0,realisasi_kumulatif:+r.realisasi_kumulatif||0,tanggalObj:parseDate(r.tanggal)})).filter(r=>r.tanggalObj)}function liveTypes(a){return a.map(r=>({...r,realisasi:+r.realisasi||0,tanggalObj:parseDate(r.tanggal)})).filter(r=>r.tanggalObj)}
-async function connect(){const id=$('sheetId').value.trim();if(!id){$('help').textContent='Spreadsheet ID belum diisi.';return}$('help').textContent='Membaca Google Sheets...';try{const [d,t]=await Promise.all([loadSheet(id,$('sheetName').value.trim()||'02_SUMMARY_HARIAN'),loadSheet(id,$('typeSheetName').value.trim()||'04_SUMMARY_JENIS')]);state.daily=liveDaily(d);state.types=liveTypes(t);if(!state.daily.length)throw new Error('Summary Harian kosong.');state.mode='live';$('mode').textContent='GOOGLE SHEETS';$('sourceText').textContent='Live • Google Sheets';$('modal').classList.add('hidden');setDates();render()}catch(e){$('help').textContent='Gagal terhubung: '+e.message}}
-async function submitUpload(){const file=$('uploadFile').files[0],url=$('webAppUrl').value.trim(),sid=$('uploadSheetId').value.trim();if(!file){$('uploadHelp').textContent='Pilih file Excel/CSV terlebih dahulu.';return}if(!url){$('uploadHelp').textContent='Isi URL Google Apps Script Web App terlebih dahulu.';return}if(!sid){$('uploadHelp').textContent='Spreadsheet ID belum diisi.';return}const mode=$('uploadMode').value;const a=$('uploadStart').value,b=$('uploadEnd').value;if(!a||!b||a>b){$('uploadHelp').textContent='Periode upload tidak valid.';return}if(mode==='HARIAN'&&a!==b){$('uploadHelp').textContent='Mode Harian harus menggunakan satu tanggal yang sama untuk Periode Awal dan Periode Akhir.';return}const unit=mode==='HISTORIS'?'ALL':$('uploadUnit').value;const btn=$('doUpload');btn.disabled=true;btn.textContent='Mengirim...';$('uploadHelp').textContent='Membaca file dan mengirim ke Apps Script...';try{const base64=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>{const s=String(fr.result||'');resolve(s.split(',')[1]||s)};fr.onerror=()=>reject(fr.error||new Error('Gagal membaca file'));fr.readAsDataURL(file)});const form=document.createElement('form');form.method='POST';form.action=url;form.target='uploadFrame';form.style.display='none';const add=(name,value)=>{const i=document.createElement('input');i.type='hidden';i.name=name;i.value=value;form.appendChild(i)};add('action','upload');add('mode',mode);add('unitInduk',unit);add('startDate',a);add('endDate',b);add('fileName',file.name);add('fileData',base64);add('spreadsheetId',sid);document.body.appendChild(form);form.submit();form.remove();$('uploadHelp').textContent='Upload sedang diproses. Jangan tutup halaman ini.'}catch(e){$('uploadHelp').textContent='Gagal: '+e.message;btn.disabled=false;btn.textContent='Upload & Proses'}}
-function updateUploadModeUI(){const mode=$('uploadMode').value;const unit=$('uploadUnit');const a=$('uploadStart'),b=$('uploadEnd');if(mode==='HISTORIS'){unit.value='ALL';unit.disabled=true;a.value='2026-01-01';b.value='2026-07-31';$('uploadUnitHelp').textContent='HISTORY: satu file berisi seluruh Unit Induk → SEMUA UID.';$('uploadHelp').textContent='HISTORY: realisasi = SUM kolom jumlah (G). Cocok untuk Jan–Jul dan Agustus.';}else{unit.disabled=false;a.value='2026-09-01';b.value='2026-09-01';$('uploadUnitHelp').textContent='HARIAN: gunakan SEMUA UID bila file harian berisi seluruh Unit Induk.';$('uploadHelp').textContent='HARIAN: realisasi = jumlah baris. Satu tanggal per upload.';}}
-window.addEventListener('message',ev=>{const d=ev.data||{};if(d.type!=='GANTI_METER_UPLOAD')return;const btn=$('doUpload');if(d.ok){$('uploadHelp').textContent='✓ '+(d.message||'Upload berhasil.');btn.disabled=false;btn.textContent='Upload & Proses';setTimeout(()=>{$('uploadModal').classList.add('hidden');if($('sheetId').value.trim()){connect()}},1200)}else{$('uploadHelp').textContent='✕ '+(d.message||'Upload gagal.');btn.disabled=false;btn.textContent='Upload & Proses'}});
-$('refreshBtn').onclick=render;$('startDate').onchange=render;$('endDate').onchange=render;$('typeFilter').onchange=render;$('liveBtn').onclick=()=>{$('modal').classList.remove('hidden');$('help').textContent=''};$('close').onclick=()=>$('modal').classList.add('hidden');$('demoBtn').onclick=()=>{$('modal').classList.add('hidden');setDemo()};$('connectBtn').onclick=connect;$('uploadBtn').onclick=()=>{$('uploadModal').classList.remove('hidden');$('uploadHelp').textContent='Untuk Excel (.xlsx/.xls), backend Apps Script memerlukan Advanced Google Drive Service.'};$('uploadClose').onclick=()=>$('uploadModal').classList.add('hidden');$('uploadCancel').onclick=()=>$('uploadModal').classList.add('hidden');$('doUpload').onclick=submitUpload;$('uploadMode').onchange=updateUploadModeUI;updateUploadModeUI();setDemo();
-</script>
+<iframe name="postFrame" id="postFrame" class="hidden-frame"></iframe>
+<script src="app.js"></script>
 </body>
 </html>

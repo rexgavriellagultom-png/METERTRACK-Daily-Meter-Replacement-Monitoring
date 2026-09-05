@@ -1,501 +1,267 @@
+const $ = (id) => document.getElementById(id);
+
 const state = {
-  daily: [],
-  types: [],
-  mode: "demo",
-  sheetId: localStorage.getItem("gm_sheet_id") || "",
-  sheetName: localStorage.getItem("gm_sheet_name") || "02_SUMMARY_HARIAN",
-  typeSheetName: localStorage.getItem("gm_type_sheet_name") || "03_SUMMARY_JENIS",
-  chart: null
+  mode: 'HISTORIS',
+  file: null,
+  busy: false,
+  jobId: null,
+  chunkCount: 0,
 };
 
-const $ = id => document.getElementById(id);
+const DEFAULT_SPREADSHEET_ID = '1fSlfqfQLC9B5QN7tg0VhqqUVQYqL5xJT3QvUbpVG0Qg';
 
-function parseDate(v){
-  if(!v) return null;
-  if(v instanceof Date) return new Date(v.getFullYear(),v.getMonth(),v.getDate());
-  const s=String(v).trim();
-  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)){
-    const [d,m,y]=s.split("/").map(Number);
-    return new Date(y,m-1,d);
+function formatNumber(n){
+  return Number(n || 0).toLocaleString('id-ID');
+}
+
+function formatBytes(bytes){
+  if (!bytes) return '0 B';
+  const units = ['B','KB','MB','GB'];
+  let i = 0, v = bytes;
+  while (v >= 1024 && i < units.length-1){ v /= 1024; i++; }
+  return `${v.toFixed(i ? 1 : 0)} ${units[i]}`;
+}
+
+function setConnection(ok, text){
+  const el = $('connectionStatus');
+  el.classList.toggle('ok', !!ok);
+  el.innerHTML = `<span class="dot"></span> ${text}`;
+}
+
+function showFile(file){
+  state.file = file || null;
+  $('fileInput').value = '';
+  $('selectedFile').hidden = !file;
+  if (file){
+    $('fileName').textContent = file.name;
+    $('fileSize').textContent = formatBytes(file.size);
   }
-  if(/^\d{4}-\d{2}-\d{2}/.test(s)){
-    const [y,m,d]=s.slice(0,10).split("-").map(Number);
-    return new Date(y,m-1,d);
+}
+
+function setBusy(busy){
+  state.busy = busy;
+  $('uploadBtn').disabled = busy;
+  $('resetBtn').disabled = busy;
+  $('testBtn').disabled = busy;
+  $('fileInput').disabled = busy;
+  document.querySelectorAll('.mode').forEach(b => b.disabled = busy);
+}
+
+function showProgress(show=true){
+  $('progressCard').hidden = !show;
+}
+
+function setProgress(data){
+  const total = Number(data.totalRows || 0);
+  const processed = Number(data.processedRows || 0);
+  const pct = Math.max(0, Math.min(100, Number(data.progress != null ? data.progress : (total ? processed/total*100 : 0))));
+  $('progressBar').style.width = `${pct}%`;
+  $('progressPercent').textContent = `${pct.toFixed(1)}%`;
+  $('processedRows').textContent = formatNumber(processed);
+  $('totalRows').textContent = formatNumber(total);
+  $('realization').textContent = formatNumber(data.realization || 0);
+  $('jobStatus').textContent = data.status || 'PROCESSING';
+  $('progressTitle').textContent = data.status === 'COMPLETE' ? 'Proses selesai' : data.status === 'FAILED' ? 'Proses gagal' : `Memproses JOB`;
+  $('progressText').textContent = data.message || `Chunk ${state.chunkCount} sedang diproses...`;
+}
+
+function showResult(ok, title, message){
+  const card = $('resultCard');
+  card.hidden = false;
+  card.classList.toggle('error', !ok);
+  $('resultIcon').textContent = ok ? '✓' : '!';
+  $('resultTitle').textContent = title;
+  $('resultMessage').textContent = message || '';
+}
+
+function resetUI(){
+  if(state.busy) return;
+  state.file = null;
+  state.jobId = null;
+  state.chunkCount = 0;
+  $('fileInput').value = '';
+  $('selectedFile').hidden = true;
+  $('progressCard').hidden = true;
+  $('resultCard').hidden = true;
+  setProgress({totalRows:0,processedRows:0,progress:0,realization:0,status:'READY',message:'Menunggu upload...'});
+}
+
+function getScriptUrl(){
+  return $('scriptUrl').value.trim();
+}
+
+function getSpreadsheetId(){
+  return $('spreadsheetId').value.trim() || DEFAULT_SPREADSHEET_ID;
+}
+
+function validUrl(){
+  const url = getScriptUrl();
+  if(!url || !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(url)){
+    throw new Error('Masukkan URL Web App Apps Script V2 yang berakhiran /exec.');
   }
-  const d=new Date(v);
-  return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  return url;
 }
 
-function localInputDate(d){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
+function submitPost(params){
+  const url = validUrl();
+  return new Promise((resolve, reject) => {
+    const frame = $('postFrame');
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = 'postFrame';
+    form.style.display = 'none';
 
-function fmtDate(d){
-  return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
-}
+    Object.entries(params).forEach(([k,v]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = k;
+      input.value = v == null ? '' : String(v);
+      form.appendChild(input);
+    });
 
-function num(v){
-  const n=Number(v);
-  return Number.isFinite(n)?n:0;
-}
-
-function pct(v){
-  return `${(v*100).toFixed(1)}%`;
-}
-
-function nfmt(v){
-  return Math.round(v).toLocaleString("id-ID");
-}
-
-function typeNorm(v){
-  return String(v||"").trim().toUpperCase();
-}
-
-function seedFromDemo(){
-  state.daily=(window.DEMO_DATA?.daily||[]).map(r=>({
-    ...r,
-    tanggalObj:parseDate(r.tanggal),
-    target_hari:num(r.target_hari),
-    real_hari:num(r.realisasi_harian),
-    target_kum:num(r.target_kumulatif),
-    real_kum:num(r.realisasi_kumulatif),
-    cap_kum:num(r.capaian_kumulatif)
-  }));
-  state.types=(window.DEMO_DATA?.types||[]).map(r=>({
-    ...r,
-    tanggalObj:parseDate(r.tanggal),
-    real:num(r.realisasi)
-  }));
-  state.mode="demo";
-  updateStatus();
-  setDefaultDates(true);
-  render();
-}
-
-function updateStatus(){
-  $("statusBadge").innerHTML =
-    `<span class="status-dot"></span> ${state.mode==="live"?"GOOGLE SHEETS":"DEMO DATA"}`;
-  $("footerSource").textContent =
-    state.mode==="live" ? "Live • Google Sheets" : "Demo historis Jan–Jul 2026";
-}
-
-function setDefaultDates(forceStart=false){
-  const all=state.daily.map(r=>r.tanggalObj).filter(Boolean).sort((a,b)=>a-b);
-  if(!all.length) return;
-
-  // IMPORTANT: do not use toISOString(), because it can shift the UI date.
-  if(forceStart || !$("startDate").value){
-    $("startDate").value=localInputDate(all[0]);
-  }
-  $("endDate").value=localInputDate(all[all.length-1]);
-
-  const last=all[all.length-1];
-  $("lastUpdate").textContent =
-    `${state.mode==="live"?"Data live":"Data historis"} • s.d. ${fmtDate(last)}`;
-}
-
-function getEndSnapshot(rows,endDate){
-  return rows
-    .filter(r=>r.tanggalObj && r.tanggalObj.getTime()===endDate.getTime())
-    .sort((a,b)=>String(a.kode_up3).localeCompare(String(b.kode_up3)));
-}
-
-function getSelectedTypeReal(up3,endDate){
-  const selected=$("typeFilter").value;
-  const f=state.types.filter(r=>
-    r.tanggalObj &&
-    r.tanggalObj.getTime()===endDate.getTime() &&
-    String(r.up3).toUpperCase()===String(up3).toUpperCase()
-  );
-  if(selected==="ALL") return f.reduce((s,r)=>s+num(r.real),0);
-  return f.filter(r=>typeNorm(r.jenis_ganti_meter)===selected)
-          .reduce((s,r)=>s+num(r.real),0);
-}
-
-function sumSelectedTypePeriod(up3,start,end){
-  const selected=$("typeFilter").value;
-  const f=state.types.filter(r=>
-    r.tanggalObj &&
-    r.tanggalObj>=start &&
-    r.tanggalObj<=end &&
-    String(r.up3).toUpperCase()===String(up3).toUpperCase()
-  );
-  if(selected==="ALL") return f.reduce((s,r)=>s+num(r.real),0);
-  return f.filter(r=>typeNorm(r.jenis_ganti_meter)===selected)
-          .reduce((s,r)=>s+num(r.real),0);
-}
-
-function calculate(){
-  const start=parseDate($("startDate").value);
-  const end=parseDate($("endDate").value);
-  const selected=$("typeFilter").value;
-
-  if(!start||!end||start>end) return null;
-
-  const periodRows=state.daily.filter(r=>
-    r.tanggalObj &&
-    r.tanggalObj>=start &&
-    r.tanggalObj<=end
-  );
-
-  // Cumulative values always come from the end-date snapshot.
-  const snapRows=getEndSnapshot(state.daily,end);
-
-  const byUp3=snapRows.map(s=>{
-    const targetCum=num(s.target_kum);
-
-    const realCum=selected==="ALL"
-      ? num(s.real_kum)
-      : sumSelectedTypeUp3Cumulative(s.up3,end);
-
-    const targetPeriod=periodRows
-      .filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase())
-      .reduce((a,x)=>a+num(x.target_hari),0);
-
-    const realPeriod=selected==="ALL"
-      ? periodRows
-          .filter(x=>String(x.up3).toUpperCase()===String(s.up3).toUpperCase())
-          .reduce((a,x)=>a+num(x.real_hari),0)
-      : sumSelectedTypePeriod(s.up3,start,end);
-
-    return {
-      ...s,
-      targetCum,
-      realCum,
-      capCum:targetCum?realCum/targetCum:0,
-      targetPeriod,
-      realPeriod,
-      capPeriod:targetPeriod?realPeriod/targetPeriod:0
+    const handler = (ev) => {
+      if(!ev.data || ev.data.type !== 'GANTI_METER_V2') return;
+      window.removeEventListener('message', handler);
+      form.remove();
+      if(ev.data.ok) resolve(ev.data.data || {});
+      else reject(new Error((ev.data.data && ev.data.data.message) || 'Endpoint mengembalikan error.'));
     };
-  });
 
-  const byUnit=new Map();
-  byUp3.forEach(r=>{
-    const k=String(r.unit_induk||"");
-    if(!byUnit.has(k)){
-      byUnit.set(k,{
-        unit_induk:k,
-        targetCum:0,
-        realCum:0,
-        targetPeriod:0,
-        realPeriod:0
-      });
-    }
-    const x=byUnit.get(k);
-    x.targetCum+=r.targetCum;
-    x.realCum+=r.realCum;
-    x.targetPeriod+=r.targetPeriod;
-    x.realPeriod+=r.realPeriod;
-  });
+    window.addEventListener('message', handler);
+    document.body.appendChild(form);
+    form.submit();
 
-  [...byUnit.values()].forEach(x=>{
-    x.capCum=x.targetCum?x.realCum/x.targetCum:0;
-    x.capPeriod=x.targetPeriod?x.realPeriod/x.targetPeriod:0;
+    setTimeout(() => {
+      window.removeEventListener('message', handler);
+      form.remove();
+      reject(new Error('Tidak ada respons dari Apps Script. Pastikan Web App sudah di-deploy dan aksesnya "Anyone".'));
+    }, 120000);
   });
-
-  return {
-    start,end,selected,
-    byUp3,
-    byUnit:[...byUnit.values()].sort((a,b)=>a.unit_induk.localeCompare(b.unit_induk)),
-    totals:{
-      targetCum:byUp3.reduce((a,x)=>a+x.targetCum,0),
-      realCum:byUp3.reduce((a,x)=>a+x.realCum,0),
-      targetPeriod:byUp3.reduce((a,x)=>a+x.targetPeriod,0),
-      realPeriod:byUp3.reduce((a,x)=>a+x.realPeriod,0)
-    }
-  };
 }
 
-/*
- * SUMMER:
- * For a selected type, the cumulative type realization is the
- * sum of type snapshots from the beginning of the available
- * data to the selected end date.
- *
- * This demo data has 3 type rows per UP3/date.
- */
-function sumSelectedTypeUp3Cumulative(up3,end){
-  const selected=$("typeFilter").value;
-
-  const f=state.types.filter(r=>
-    r.tanggalObj &&
-    r.tanggalObj<=end &&
-    String(r.up3).toUpperCase()===String(up3).toUpperCase()
-  );
-
-  if(selected==="ALL") return f.reduce((s,r)=>s+num(r.real),0);
-
-  return f.filter(r=>typeNorm(r.jenis_ganti_meter)===selected)
-          .reduce((s,r)=>s+num(r.real),0);
-}
-
-function capClass(v){
-  if(v>=1) return "good";
-  if(v>=0.9) return "warn";
-  return "bad";
-}
-
-function render(){
-  const data=calculate();
-  if(!data){
-    $("dataNote").textContent="Periksa Periode Awal dan Periode Akhir.";
-    return;
+async function testEndpoint(){
+  try{
+    const url = validUrl();
+    setConnection(false, 'Menghubungkan...');
+    const sep = url.includes('?') ? '&' : '?';
+    const r = await fetch(`${url}${sep}action=status&jobId=none&callback=testCallback_${Date.now()}`, {mode:'cors', cache:'no-store'});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    setConnection(true, 'Endpoint aktif');
+  }catch(err){
+    setConnection(false, 'Belum terhubung');
+    showResult(false, 'Tes endpoint gagal', err.message);
   }
-
-  const totalCap=data.totals.targetCum
-    ? data.totals.realCum/data.totals.targetCum
-    : 0;
-
-  $("kpiTargetCum").textContent=nfmt(data.totals.targetCum);
-  $("kpiRealCum").textContent=nfmt(data.totals.realCum);
-  $("kpiCapCum").textContent=pct(totalCap);
-  $("kpiRealDaily").textContent=nfmt(data.totals.realPeriod);
-  $("kpiUp3").textContent=nfmt(data.byUp3.length);
-
-  $("up3Count").textContent=`${data.byUp3.length} UP3`;
-  $("chartCount").textContent=`${data.byUp3.length} UP3`;
-
-  const unitBody=$("unitTable").querySelector("tbody");
-  unitBody.innerHTML=data.byUnit.map(r=>`
-    <tr>
-      <td class="ui-name">${escapeHtml(r.unit_induk)}</td>
-      <td>${nfmt(r.targetCum)}</td>
-      <td>${nfmt(r.realCum)}</td>
-      <td class="badge ${capClass(r.capCum)}">${pct(r.capCum)}</td>
-      <td>${nfmt(r.targetPeriod)}</td>
-      <td>${nfmt(r.realPeriod)}</td>
-      <td class="badge ${capClass(r.capPeriod)}">${pct(r.capPeriod)}</td>
-    </tr>`).join("");
-
-  const up3Body=$("up3Table").querySelector("tbody");
-  const sorted=[...data.byUp3].sort((a,b)=>
-    b.capCum-a.capCum ||
-    a.up3.localeCompare(b.up3)
-  );
-
-  up3Body.innerHTML=sorted.map(r=>`
-    <tr>
-      <td class="ui-name">${escapeHtml(r.unit_induk)}</td>
-      <td class="up3-name">${escapeHtml(r.up3)}</td>
-      <td>${nfmt(r.targetCum)}</td>
-      <td>${nfmt(r.realCum)}</td>
-      <td class="badge ${capClass(r.capCum)}">${pct(r.capCum)}</td>
-      <td>${nfmt(r.targetPeriod)}</td>
-      <td>${nfmt(r.realPeriod)}</td>
-      <td class="badge ${capClass(r.capPeriod)}">${pct(r.capPeriod)}</td>
-    </tr>`).join("");
-
-  renderChart(sorted);
-
-  $("dataNote").textContent =
-    `${state.mode==="live"?"Sumber live Google Sheets":"Mode demo menggunakan Summary Historis Jan–Jul 2026"} • `+
-    `${fmtDate(data.start)} s.d. ${fmtDate(data.end)} • `+
-    `Jenis: ${data.selected==="ALL"?"TOTAL":data.selected}`;
 }
 
-function renderChart(rows){
-  const ctx=$("rankingChart");
-  if(state.chart) state.chart.destroy();
+async function startUpload(){
+  if(state.busy) return;
+  try{
+    if(!state.file) throw new Error('Pilih file terlebih dahulu.');
+    const url = validUrl();
+    const reader = new FileReader();
 
-  state.chart=new Chart(ctx,{
-    type:"bar",
-    data:{
-      labels:rows.map(r=>r.up3),
-      datasets:[{
-        label:"Capaian Kumulatif",
-        data:rows.map(r=>Number((r.capCum*100).toFixed(1))),
-        backgroundColor:rows.map(r=>{
-          if(r.capCum>=1) return "rgba(22,148,94,.82)";
-          if(r.capCum>=.9) return "rgba(180,123,18,.80)";
-          return "rgba(212,78,78,.80)";
-        }),
-        borderRadius:6,
-        barThickness:14,
-        maxBarThickness:15,
-        borderWidth:0
-      }]
-    },
-    options:{
-      indexAxis:"y",
-      responsive:true,
-      maintainAspectRatio:false,
-      animation:{duration:500},
-      layout:{padding:{left:4,right:22,top:8,bottom:8}},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            label:c=>`${c.raw.toFixed(1)}%`
-          }
-        }
-      },
-      scales:{
-        x:{
-          beginAtZero:true,
-          suggestedMax:Math.max(120,Math.ceil((Math.max(...rows.map(r=>r.capCum*100))/10))*10+10),
-          grid:{color:"#e9eef3"},
-          ticks:{
-            color:"#6b7a89",
-            font:{size:10},
-            callback:v=>v+"%"
-          }
-        },
-        y:{
-          grid:{display:false},
-          ticks:{
-            autoSkip:false,
-            color:"#53616e",
-            padding:7,
-            font:{size:10,weight:"600"}
-          }
-        }
-      }
-    }
-  });
-}
+    setBusy(true);
+    showResult(true, 'Upload dimulai', 'File sedang dikirim ke JOB processor...');
+    showProgress(true);
+    $('progressTitle').textContent = 'Membuat JOB...';
+    $('progressText').textContent = 'Membaca file di browser...';
+    $('progressBar').style.width = '0%';
+    $('progressPercent').textContent = '0%';
 
-/* ---------- CSV / Live Google Sheets ---------- */
+    const base64 = await new Promise((resolve,reject)=>{
+      reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+      reader.onerror = () => reject(new Error('Gagal membaca file.'));
+      reader.readAsDataURL(state.file);
+    });
 
-async function loadSheetCsv(sheetId,sheetName){
-  const url=
-    `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-  const res=await fetch(url,{cache:"no-store"});
-  if(!res.ok) throw new Error(`Gagal membaca ${sheetName}: HTTP ${res.status}`);
-  const text=await res.text();
-  return parseCsv(text);
-}
+    const result = await submitPost({
+      action: 'start',
+      spreadsheetId: getSpreadsheetId(),
+      mode: state.mode,
+      unitInduk: state.mode === 'HISTORIS' ? 'SEMUA' : $('unitInduk').value,
+      startDate: $('startDate').value,
+      endDate: $('endDate').value,
+      fileName: state.file.name,
+      fileData: base64
+    });
 
-function parseCsv(text){
-  const rows=[];
-  let row=[],cell="",quote=false;
-  for(let i=0;i<text.length;i++){
-    const ch=text[i],nx=text[i+1];
-    if(quote){
-      if(ch==='"' && nx==='"'){cell+='"';i++;}
-      else if(ch==='"') quote=false;
-      else cell+=ch;
-    }else{
-      if(ch==='"') quote=true;
-      else if(ch===','){row.push(cell);cell="";}
-      else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell="";}
-      else if(ch!=='\r') cell+=ch;
-    }
+    state.jobId = result.jobId;
+    state.chunkCount = 0;
+    setConnection(true, 'JOB aktif');
+    setProgress(result);
+    showResult(true, 'JOB berhasil dibuat', `Total data: ${formatNumber(result.totalRows)} baris.`);
+    await processNextChunk();
+  }catch(err){
+    setBusy(false);
+    showResult(false, 'Upload gagal', err.message);
+    setConnection(false, 'Terjadi error');
   }
-  if(cell.length||row.length){row.push(cell);rows.push(row);}
-  if(!rows.length) return [];
-  const head=rows.shift();
-  return rows.filter(r=>r.some(x=>x!=="")).map(r=>{
-    const o={};
-    head.forEach((h,i)=>o[h]=r[i]??"");
-    return o;
-  });
 }
 
-function normalizeLiveDaily(rows){
-  return rows.map(r=>({
-    ...r,
-    tanggalObj:parseDate(r.tanggal),
-    target_hari:num(r.target_hari),
-    real_hari:num(r.realisasi_harian),
-    target_kum:num(r.target_kumulatif),
-    real_kum:num(r.realisasi_kumulatif),
-    cap_kum:num(r.capaian_kumulatif)
-  })).filter(r=>r.tanggalObj);
-}
-
-function normalizeLiveTypes(rows){
-  return rows.map(r=>({
-    ...r,
-    tanggalObj:parseDate(r.tanggal),
-    real:num(r.realisasi)
-  })).filter(r=>r.tanggalObj);
-}
-
-async function connectLive(){
-  const id=$("sheetIdInput").value.trim();
-  const sheetName=$("sheetNameInput").value.trim()||"02_SUMMARY_HARIAN";
-  const typeSheetName=$("typeSheetNameInput").value.trim()||"03_SUMMARY_JENIS";
-
-  if(!id){
-    $("liveHelp").textContent="Spreadsheet ID belum diisi.";
-    return;
-  }
-
-  $("liveHelp").textContent="Membaca Google Sheets...";
+async function processNextChunk(){
+  if(!state.jobId) throw new Error('jobId tidak tersedia.');
+  state.chunkCount++;
+  $('progressText').textContent = `Memproses chunk ${state.chunkCount}...`;
 
   try{
-    const [d,t]=await Promise.all([
-      loadSheetCsv(id,sheetName),
-      loadSheetCsv(id,typeSheetName)
-    ]);
+    const result = await submitPost({
+      action: 'process',
+      jobId: state.jobId
+    });
 
-    state.daily=normalizeLiveDaily(d);
-    state.types=normalizeLiveTypes(t);
+    setProgress(result);
 
-    if(!state.daily.length){
-      throw new Error("Summary Harian kosong atau tanggal tidak terbaca.");
+    if(result.status === 'COMPLETE'){
+      setBusy(false);
+      showResult(true, 'Upload & proses selesai', `Baris: ${formatNumber(result.processedRows)} • Realisasi: ${formatNumber(result.realization)} • Metode: ${result.mode === 'HISTORIS' ? 'SUM(jumlah)' : 'COUNT_ROW'}`);
+      setConnection(true, 'Selesai');
+      return;
     }
 
-    state.mode="live";
-    state.sheetId=id;
-    state.sheetName=sheetName;
-    state.typeSheetName=typeSheetName;
+    if(result.status === 'FAILED'){
+      setBusy(false);
+      showResult(false, 'Proses gagal', result.error || result.message || 'Tidak ada detail error.');
+      setConnection(false, 'JOB gagal');
+      return;
+    }
 
-    localStorage.setItem("gm_sheet_id",id);
-    localStorage.setItem("gm_sheet_name",sheetName);
-    localStorage.setItem("gm_type_sheet_name",typeSheetName);
-
-    $("liveModal").classList.add("hidden");
-
-    updateStatus();
-    setDefaultDates(true);
-    render();
-
+    setTimeout(processNextChunk, 100);
   }catch(err){
-    console.error(err);
-    $("liveHelp").textContent=
-      "Gagal terhubung: "+err.message+
-      ". Pastikan sheet dapat dibaca dari web.";
+    setBusy(false);
+    showResult(false, 'Pemrosesan berhenti', err.message);
+    setConnection(false, 'Tidak ada respons');
   }
 }
 
-/* ---------- Events ---------- */
-
-$("refreshBtn").addEventListener("click",render);
-$("startDate").addEventListener("change",render);
-$("endDate").addEventListener("change",render);
-$("typeFilter").addEventListener("change",render);
-
-$("liveBtn").addEventListener("click",()=>{
-  $("sheetIdInput").value=state.sheetId;
-  $("sheetNameInput").value=state.sheetName;
-  $("typeSheetNameInput").value=state.typeSheetName;
-  $("liveHelp").textContent="";
-  $("liveModal").classList.remove("hidden");
+document.querySelectorAll('.mode').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.mode = btn.dataset.mode;
+    document.querySelectorAll('.mode').forEach(b => b.classList.toggle('active', b === btn));
+    if(state.mode === 'HISTORIS'){
+      $('unitInduk').value = 'SEMUA';
+      $('modeHelp').innerHTML = '<b>Historis:</b> satu file dapat berisi seluruh UID dan periode panjang (Jan–Jul, Agustus, dan seterusnya). Realisasi dihitung dari <b>SUM(jumlah)</b>.';
+    }else{
+      $('modeHelp').innerHTML = '<b>Harian:</b> satu file digunakan untuk satu tanggal/periode kerja. Setiap baris transaksi dihitung sebagai <b>1 realisasi</b>.';
+    }
+  });
 });
 
-$("closeModal").addEventListener("click",()=>{
-  $("liveModal").classList.add("hidden");
+$('fileInput').addEventListener('change', e => showFile(e.target.files[0] || null));
+$('removeFile').addEventListener('click', () => showFile(null));
+$('resetBtn').addEventListener('click', resetUI);
+$('testBtn').addEventListener('click', testEndpoint);
+$('uploadBtn').addEventListener('click', startUpload);
+
+$('dropzone').addEventListener('click', () => $('fileInput').click());
+$('dropzone').addEventListener('dragover', e => { e.preventDefault(); $('dropzone').classList.add('drag'); });
+$('dropzone').addEventListener('dragleave', () => $('dropzone').classList.remove('drag'));
+$('dropzone').addEventListener('drop', e => {
+  e.preventDefault();
+  $('dropzone').classList.remove('drag');
+  showFile(e.dataTransfer.files[0] || null);
 });
 
-$("demoBtn").addEventListener("click",()=>{
-  $("liveModal").classList.add("hidden");
-  seedFromDemo();
-});
-
-$("connectBtn").addEventListener("click",connectLive);
-
-function escapeHtml(v){
-  return String(v??"").replace(
-    /[&<>"']/g,
-    m=>({
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#039;"
-    }[m])
-  );
-}
-
-seedFromDemo();
+$('scriptUrl').value = localStorage.getItem('gm_v2_script_url') || '';
+$('scriptUrl').addEventListener('change', e => localStorage.setItem('gm_v2_script_url', e.target.value.trim()));
+setProgress({totalRows:0,processedRows:0,progress:0,realization:0,status:'READY',message:'Menunggu upload...'});
