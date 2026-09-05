@@ -140,14 +140,57 @@ function submitPost(params){
   });
 }
 
-async function testEndpoint(){
+function testEndpoint(){
   try{
     const url = validUrl();
     setConnection(false, 'Menghubungkan...');
+
+    // Apps Script Web App tidak selalu mengizinkan fetch() CORS dari GitHub Pages.
+    // Endpoint V2 menyediakan JSONP khusus untuk test status.
+    const callbackName = `gmV2Test_${Date.now()}_${Math.floor(Math.random()*10000)}`;
+    const script = document.createElement('script');
     const sep = url.includes('?') ? '&' : '?';
-    const r = await fetch(`${url}${sep}action=status&jobId=none&callback=testCallback_${Date.now()}`, {mode:'cors', cache:'no-store'});
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    setConnection(true, 'Endpoint aktif');
+    let finished = false;
+
+    const cleanup = () => {
+      try { delete window[callbackName]; } catch(e) {}
+      script.remove();
+    };
+
+    const timer = setTimeout(() => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      setConnection(false, 'Belum terhubung');
+      showResult(false, 'Tes endpoint gagal', 'Tidak ada respons dari Apps Script. Pastikan Web App V2 sudah di-deploy sebagai versi aktif dan aksesnya Anyone.');
+    }, 15000);
+
+    window[callbackName] = (data) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      cleanup();
+
+      if (data && data.ok !== false) {
+        setConnection(true, 'Endpoint aktif');
+        showResult(true, 'Tes endpoint berhasil', 'Apps Script V2 dapat diakses dari dashboard.');
+      } else {
+        setConnection(false, 'Belum terhubung');
+        showResult(false, 'Tes endpoint gagal', (data && (data.message || data.error)) || 'Endpoint mengembalikan status tidak valid.');
+      }
+    };
+
+    script.src = `${url}${sep}action=status&jobId=none&callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
+    script.onerror = () => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      cleanup();
+      setConnection(false, 'Belum terhubung');
+      showResult(false, 'Tes endpoint gagal', 'Web App tidak dapat diakses. Periksa URL /exec dan pengaturan deployment.');
+    };
+
+    document.head.appendChild(script);
   }catch(err){
     setConnection(false, 'Belum terhubung');
     showResult(false, 'Tes endpoint gagal', err.message);
